@@ -1,0 +1,6 @@
+RewriteEngine On
+RewriteBase /croptool2/public_html/
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/(.*)$ backend.php [QSA,L]

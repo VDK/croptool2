@@ -5,6 +5,7 @@ namespace CropTool;
 class QueryResponse
 {
     public $exists = false;
+    public $pageid;
     public $sha1;
     public $mime;
     public $url;
@@ -13,6 +14,7 @@ class QueryResponse
     public $descriptionurl;
     public $pagecount;
     public $categories;
+    public $protection = [];
 
     public function __construct($response=null)
     {
@@ -25,8 +27,10 @@ class QueryResponse
                 return;
             }
             $this->exists = true;
+            $this->pageid = $page->pageid ?? null;
             $this->parseImageInfo($page->imageinfo[0]);
             $this->parseCategories($page->categories ?? []);
+            $this->parseProtection($page->protection ?? []);
         }
     }
 
@@ -49,8 +53,29 @@ class QueryResponse
         }, $data);
     }
 
+    protected function parseProtection($data)
+    {
+        $this->protection = $data;
+    }
+
+    public function hasUploadProtection()
+    {
+        foreach ($this->protection as $restriction) {
+            if (($restriction->type ?? null) === 'upload' && ($restriction->level ?? 'all') !== 'all') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function getShortSha1()
     {
         return substr($this->sha1, 0, 7);
+    }
+
+    public function getMediaInfoId()
+    {
+        return $this->pageid ? 'M' . $this->pageid : null;
     }
 }

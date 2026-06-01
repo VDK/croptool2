@@ -8,6 +8,8 @@ import rev from 'gulp-rev';
 import revReplace from 'gulp-rev-replace';
 import filter from 'gulp-filter';
 import useref from 'gulp-useref';
+import path from 'path';
+import through from 'through2';
 
 /* Variables and paths
 ------------------------------------- */
@@ -17,6 +19,7 @@ const paths = {
   index: 'src/index.html',
   scripts: 'src/js/*.js',
 };
+const assetVersion = Date.now().toString(36);
 
 /* Tasks
 ------------------------------------- */
@@ -34,6 +37,7 @@ export function build () {
   var jsFilter = filter('**/*.js', { restore: true });
   var cssFilter = filter('**/*.css', { restore: true });
   var notIndexHtmlFilter = filter(['**/*', '!**/index.html'], { restore: true });
+  var manifest = {};
 
   return gulp.src(paths.index)
     .pipe(useref({ searchPath: '.' }))
@@ -45,8 +49,35 @@ export function build () {
     .pipe(cssFilter.restore)
     .pipe(notIndexHtmlFilter)
     .pipe(rev())                // Rename the concatenated files (but not index.html)
+    .pipe(through.obj(function(file, enc, cb) {
+      manifest[path.basename(file.revOrigPath)] = file.relative.replace(/\\/g, '/');
+      cb(null, file);
+    }))
     .pipe(notIndexHtmlFilter.restore)
     .pipe(revReplace())         // Substitute in new filenames
+    .pipe(through.obj(function(file, enc, cb) {
+      if (path.basename(file.path) === 'index.html') {
+        var html = file.contents.toString();
+        if (manifest['vendor.css']) {
+          html = html.replace(
+            /<!-- build:css css\/vendor(?:-[a-f0-9]+)?\.css -->[\s\S]*?<!-- endbuild -->/,
+            '<link rel="stylesheet" href="' + manifest['vendor.css'] + '?version=' + assetVersion + '">'
+          );
+        }
+        if (manifest['vendor.js']) {
+          html = html.replace(
+            /<!-- build:js js\/vendor(?:-[a-f0-9]+)?\.js -->[\s\S]*?<!-- endbuild -->/,
+            '<script src="' + manifest['vendor.js'] + '"></script>'
+          );
+        }
+        html = html.replace(
+          /href="(css\/app-[^"]+\.css)"/,
+          'href="$1?version=' + assetVersion + '"'
+        );
+        file.contents = Buffer.from(html);
+      }
+      cb(null, file);
+    }))
     .pipe(gulp.dest(paths.build))
     ;
 }

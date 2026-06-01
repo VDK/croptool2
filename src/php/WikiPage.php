@@ -96,6 +96,13 @@ class WikiPage
         }
     }
 
+    public function assertCanOverwrite()
+    {
+        if ($this->imageinfo->hasUploadProtection()) {
+            throw new \RuntimeException('This file is protected against uploading new versions. Please upload the crop as a new file.');
+        }
+    }
+
     public function getTitleParameter()
     {
         return $this->_title;
@@ -133,6 +140,99 @@ class WikiPage
             $this->cache['file'] = $this->files->get($this->imageinfo);
         }
         return $this->cache['file'];
+    }
+
+    public function getDepictsParameter()
+    {
+        return $this->getDepicts();
+    }
+
+    public function getDepicts($languages = 'en|mul|de|fr')
+    {
+        if (!isset($this->cache['depictsIds'])) {
+            $this->cache['depictsIds'] = $this->getDepictsIds();
+        }
+
+        $cacheKey = 'depicts:' . $languages;
+        if (!isset($this->cache[$cacheKey])) {
+            $ids = $this->cache['depictsIds'];
+            try {
+                $terms = $this->api->getEntityTerms($ids, $languages);
+            } catch (\Throwable $e) {
+                $terms = [];
+            }
+            $this->cache[$cacheKey] = array_map(function($id) use ($terms) {
+                return $this->depictsMetadata($id, $terms[$id] ?? []);
+            }, $ids);
+        }
+
+        return $this->cache[$cacheKey];
+    }
+
+    private function getDepictsIds()
+    {
+        try {
+            $statements = $this->api->getDepictsStatements($this->imageinfo->getMediaInfoId());
+        } catch (\Throwable $e) {
+            $statements = [];
+        }
+
+        $ids = [];
+        foreach ($statements as $statement) {
+            $id = $statement->mainsnak->datavalue->value->id ?? null;
+            if ($id) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    private function depictsMetadata($id, array $termSet)
+    {
+        return [
+            'id' => $id,
+            'label' => $termSet['label'] ?? $id,
+            'description' => $termSet['description'] ?? null,
+            'labels' => $termSet['labels'] ?? [],
+            'descriptions' => $termSet['descriptions'] ?? [],
+            'selected' => true,
+        ];
+    }
+
+    public function addDepictsStatements($depictsIds)
+    {
+        $mediaInfoId = $this->imageinfo->getMediaInfoId();
+        if (!$mediaInfoId) {
+            return;
+        }
+
+        $existingIds = [];
+        try {
+            foreach ($this->api->getDepictsStatements($mediaInfoId) as $statement) {
+                $existingId = $statement->mainsnak->datavalue->value->id ?? null;
+                if ($existingId) {
+                    $existingIds[] = $existingId;
+                }
+            }
+        } catch (\Throwable $e) {
+            $existingIds = [];
+        }
+
+        foreach ($depictsIds as $id) {
+            if (!preg_match('/^Q[1-9][0-9]*$/', $id)) {
+                continue;
+            }
+            if (in_array($id, $existingIds)) {
+                continue;
+            }
+
+            $this->api->createClaim($mediaInfoId, 'P180', json_encode([
+                'entity-type' => 'item',
+                'numeric-id' => intval(substr($id, 1)),
+                'id' => $id,
+            ]));
+        }
     }
 
     public function getExistsParameter()

@@ -99,6 +99,10 @@ $builder->addDefinitions(ROOT_PATH . '/container.php');
 $container = $builder->build();
 
 $app = App::create($container);
+$basePath = rtrim($container->get(\CropTool\Config::class)->get('basepath'), '/');
+if ($basePath !== '') {
+    $app->setBasePath($basePath);
+}
 $app->addErrorMiddleware(true, true, true);
 $app->add(\CropTool\SessionInterface::class);
 $app->addBodyParsingMiddleware();
@@ -135,6 +139,7 @@ $app->group('/api/file', function ( Slim\Routing\RouteCollectorProxy $app) {
     $app->get('/exists', [FileController::class, 'exists']);
     $app->get('/info', [FileController::class, 'info']);
     $app->get('/autodetect', [FileController::class, 'autodetect']);
+    $app->get('/autostraighten', [FileController::class, 'autostraighten']);
     $app->get('/crop', [FileController::class, 'crop']);
     $app->post('/publish', [FileController::class, 'publish']);
 
