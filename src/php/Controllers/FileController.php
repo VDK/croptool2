@@ -2,6 +2,7 @@
 
 namespace CropTool\Controllers;
 
+use CropTool\AutoStraightener;
 use CropTool\BorderLocator;
 use CropTool\EditSummary;
 use CropTool\File\FileInterface;
@@ -106,6 +107,19 @@ class FileController
         return $response;
     }
 
+    public function autostraighten(Response $response, Request $request, WikiPageService $pageService, AutoStraightener $straightener)
+    {
+        $page = $pageService->getForTitle($request->getQueryParams()['title'], $request->getQueryParams()['site']);
+        $pageno = intval($request->getQueryParams()['page'] ?? 0);
+        $srcPath = $page->file->getAbsolutePathForPage($pageno);
+
+        $response->getBody()->write((string)json_encode([
+            'angle' => $straightener->detectAngle($srcPath),
+        ]));
+
+        return $response;
+    }
+
     public function crop(Response $response, Request $request, WikiPageService $pageService, ImageEditor $editor, LoggerInterface $logger, FactoryInterface $factory)
     {
         $page = $pageService->getForTitle($request->getQueryParams()['title'] ?? 0, $request->getQueryParams()['site'] ?? 'commons.wikimedia.org');
@@ -170,6 +184,11 @@ class FileController
         }
 
         $options = $page->wikitext->possibleStuffToRemove();
+        $language = $this->metadataLanguage($request->getQueryParams()['language'] ?? 'en');
+        $metadata = [
+            'depicts' => $page->site == 'commons.wikimedia.org' ? $page->getDepicts($language) : [],
+            'categories' => $this->categoriesMetadata($page->imageinfo->categories),
+        ];
         $wd = null;
         if (isset($options['wikidata-item'])) {
             try {
@@ -193,6 +212,8 @@ class FileController
                 'elems' => $options,
                 'hasAssessmentTemplates' => $page->wikitext->hasAssessmentTemplates(),
                 'hasDoNotCropTemplate' => $page->wikitext->hasDoNotCropTemplate(),
+                'hasUploadProtection' => $page->imageinfo->hasUploadProtection(),
+                'metadata' => $metadata,
             ],
             'crop' => $this->fileResponse($page->file, $crop, $pageno, '_cropped'),
             'thumb' => $this->fileResponse($page->file, $thumb, $pageno, '_cropped_thumb'),
@@ -202,6 +223,16 @@ class FileController
         ])));
 
         return $response;
+    }
+
+    private function metadataLanguage($language)
+    {
+        $language = strtolower($language);
+        if (!preg_match('/^[a-z][a-z0-9-]*$/', $language)) {
+            $language = 'en';
+        }
+        $fallbacks = [$language, 'en', 'mul', 'de', 'fr', 'nl', 'es'];
+        return implode('|', array_values(array_unique($fallbacks)));
     }
 
     public function publish(Response $response, Request $request, WikiPageService $pageService, FactoryInterface $factory, LoggerInterface $logger)
@@ -221,6 +252,7 @@ class FileController
         $overwrite = array_get($body, 'overwrite') == 'overwrite';
         $editComment = array_get($body, 'comment');
         $stuffToRemove = array_get($body, 'elems');
+        $metadata = array_get($body, 'metadata', []);
         $ignoreWarnings = boolval(array_get($body, 'ignorewarnings', false));
         $newName = array_get($body, 'filename');
 
@@ -243,6 +275,7 @@ class FileController
         }
 
         if ($overwrite) {
+            $page->assertCanOverwrite();
 
             // ignoreWarnings=true is necessary for overwrite
             $uploadResponse = $page->upload($cropPath, $editComment, true);
@@ -269,6 +302,7 @@ class FileController
 
             // Remove templates before appending {{Extracted from}}
             $wikitext = $wikitext->withoutTemplatesNotToBeCopied();
+            $wikitext = $wikitext->withoutCategories($this->deselectedOriginalCategories($page, $metadata));
 
             if (array_get($stuffToRemove, 'wikidata')) {
                 $wikitext = $wikitext->withoutCropForWikidataTemplate();
@@ -300,6 +334,15 @@ class FileController
                 $item = $factory->make(WikidataItem::class, ['entity' => $wdEntity]);
                 $item->addClaim('P18', '"' . $newName . '"');
             }
+
+            if ($site == 'commons.wikimedia.org') {
+                $uploadedPage = $pageService->getForTitle($newName, $site);
+                try {
+                    $uploadedPage->addDepictsStatements($this->selectedOriginalDepictsIds($page, $metadata));
+                } catch (\Throwable $e) {
+                    $logger->warning('Failed to add depicts statements to "' . $newName . '": ' . $e->getMessage());
+                }
+            }
         }
 
         $uploadResponse->elems = $elems;
@@ -307,4 +350,61 @@ class FileController
         $response->getBody()->write((string)json_encode($uploadResponse));
         return $response;
     }
+
+    protected function selectedMetadataValues($metadata, $group, $valueKey)
+    {
+        return $this->metadataValues($metadata, $group, $valueKey, true);
+    }
+
+    protected function categoriesMetadata($categories)
+    {
+        return array_map(function($category) {
+            return [
+                'name' => $category,
+                'selected' => true,
+            ];
+        }, $categories);
+    }
+
+    protected function selectedOriginalDepictsIds($page, $metadata)
+    {
+        $selectedIds = $this->selectedMetadataValues($metadata, 'depicts', 'id');
+        $originalIds = array_map(function($depicts) {
+            return $this->metadataField($depicts, 'id');
+        }, $page->getDepicts());
+
+        return array_values(array_intersect($selectedIds, $originalIds));
+    }
+
+    protected function deselectedOriginalCategories($page, $metadata)
+    {
+        $deselectedCategories = $this->metadataValues($metadata, 'categories', 'name', false);
+
+        return array_values(array_intersect($deselectedCategories, $page->imageinfo->categories));
+    }
+
+    protected function metadataValues($metadata, $group, $valueKey, $selected)
+    {
+        $values = [];
+        foreach ($this->metadataField($metadata, $group, []) as $item) {
+            if (boolval($this->metadataField($item, 'selected', true)) === $selected && $this->metadataField($item, $valueKey)) {
+                $values[] = $this->metadataField($item, $valueKey);
+            }
+        }
+
+        return $values;
+    }
+
+    protected function metadataField($data, $key, $default = null)
+    {
+        if (is_array($data)) {
+            return array_key_exists($key, $data) ? $data[$key] : $default;
+        }
+        if (is_object($data)) {
+            return property_exists($data, $key) ? $data->{$key} : $default;
+        }
+
+        return $default;
+    }
+
 }

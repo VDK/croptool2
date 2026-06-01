@@ -375,6 +375,26 @@ class WikiText
     }
 
     /**
+     * Remove categories selected by the user from the copied wikitext.
+     *
+     * @param string[] $categories Category names without namespace.
+     * @return WikiText
+     */
+    public function withoutCategories($categories)
+    {
+        if (!count($categories)) {
+            return $this;
+        }
+
+        return $this->removePattern(
+            self::CATEGORIES,
+            array_map(function($category) {
+                return preg_quote($category, '/');
+            }, $categories)
+        );
+    }
+
+    /**
      * Get position and length of first instance of $searchText
      * @param string $searchText
      * @return array|bool

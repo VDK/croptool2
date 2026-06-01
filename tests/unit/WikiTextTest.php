@@ -65,6 +65,14 @@ class WikiTextTest extends TestCase
         $this->assertEquals('abc [[Category:SomeCategory]] [[Category:SomeOtherCategory]] def', $wikitext);
     }
 
+    public function testItRemovesUserSelectedCategories()
+    {
+        $wikitext = WikiText::make('abc [[Category:Keep]] [[Category:A+B (test)]][[Category:Another]] def')
+            ->withoutCategories(['A+B (test)']);
+
+        $this->assertEquals('abc [[Category:Keep]] [[Category:Another]] def', $wikitext);
+    }
+
     public function testItRemovesTheCropTemplateIfRequested()
     {
         $wikitext = WikiText::make('abc {{Crop}} def')

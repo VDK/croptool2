@@ -55,6 +55,7 @@ class OAuthConsumer implements AuthServiceInterface
      * The base path
      */
     protected $basepath;
+    protected $secureCookies;
 
     protected $logger;
     protected $session;
@@ -67,17 +68,20 @@ class OAuthConsumer implements AuthServiceInterface
     {
         $this->cookieDomain = $config->getCookieDomain();
         $this->basepath = $config->get('basepath');
+        $this->secureCookies = filter_var($config->get('secureCookies', true), FILTER_VALIDATE_BOOLEAN);
         $this->gUserAgent = $config->get('userAgent');
         $this->gConsumerKey = $config->get('consumerKey');
         $this->gConsumerSecret = $config->get('consumerSecret');
         $this->logger = $logger;
         $this->session = $session;
         $this->cookieKey = $this->loadEncryptionKeyFromConfig($keyFile);
-        $this->callbackUrl = $callbackUrl;
+        $this->callbackUrl = $config->get('scheme', 'https') . '://' .
+            $config->get('hostname') .
+            rtrim($this->basepath, '/') . '/api/auth/callback';
 
         // Load the user token (request or access) from the session
-        $this->gTokenKey = '';
-        $this->gTokenSecret = '';
+        $this->gTokenKey = $config->get('accessToken', '');
+        $this->gTokenSecret = $config->get('accessSecret', '');
 
         // Grab temporary request token from SESSION
         if ($this->session->has('mwKey') && $this->session->has('mwSecret')) {
@@ -168,9 +172,6 @@ class OAuthConsumer implements AuthServiceInterface
         curl_close($ch);
         $token = json_decode($data);
 
-        var_dump($url);
-        var_dump($token);
-
         if (is_object($token) && isset($token->error)) {
             header("HTTP/1.1 500 Internal Server Error");
             $this->logger->error('[oauth] ' . $requestTokenSha1 . ': Failed to fetch permanent token: ' . htmlspecialchars($token->error));
@@ -192,7 +193,7 @@ class OAuthConsumer implements AuthServiceInterface
             $twoYears,
             $this->basepath,
             $this->cookieDomain,
-            true,  // only secure (https)
+            $this->secureCookies,
             true   // httponly
         )) {
             header("HTTP/1.1 500 Internal Server Error");
@@ -206,7 +207,7 @@ class OAuthConsumer implements AuthServiceInterface
             $twoYears,
             $this->basepath,
             $this->cookieDomain,
-            true,  // only secure (https)
+            $this->secureCookies,
             true   // httponly
         )) {
             header("HTTP/1.1 500 Internal Server Error");
@@ -300,15 +301,15 @@ class OAuthConsumer implements AuthServiceInterface
     {
         $this->logger->info('[oauth] Destroy authorization (logout)');
 
-        setcookie('mwKey', '', time() - 3600, $this->basepath, $this->cookieDomain, true, true);
-        setcookie('mwSecret', '', time() - 3600, $this->basepath, $this->cookieDomain, true, true);
+        setcookie('mwKey', '', time() - 3600, $this->basepath, $this->cookieDomain, $this->secureCookies, true);
+        setcookie('mwSecret', '', time() - 3600, $this->basepath, $this->cookieDomain, $this->secureCookies, true);
 
         // The domain is sometimes prepended by a dot (http://stackoverflow.com/q/2285010):
         // To make sure the cookies are deleted:
-        setcookie('mwKey', '', time() - 3600, $this->basepath, '.' . $this->cookieDomain, true, true);
-        setcookie('mwSecret', '', time() - 3600, $this->basepath, '.' . $this->cookieDomain, true, true);
-        setcookie('mwKey', '', time() - 3600, $this->basepath, '', true, true);
-        setcookie('mwSecret', '', time() - 3600, $this->basepath, '', true, true);
+        setcookie('mwKey', '', time() - 3600, $this->basepath, '.' . $this->cookieDomain, $this->secureCookies, true);
+        setcookie('mwSecret', '', time() - 3600, $this->basepath, '.' . $this->cookieDomain, $this->secureCookies, true);
+        setcookie('mwKey', '', time() - 3600, $this->basepath, '', $this->secureCookies, true);
+        setcookie('mwSecret', '', time() - 3600, $this->basepath, '', $this->secureCookies, true);
 
         $this->gTokenKey = '';
         $this->gTokenSecret = '';

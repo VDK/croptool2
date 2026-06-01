@@ -111,8 +111,10 @@ class ApiService
     {
         $response = $this->request([
             'action' => 'query',
-            'prop' => 'imageinfo|categories',
+            'prop' => 'imageinfo|categories|info',
             'format' => 'json',
+            'inprop' => 'protection',
+            'clshow' => '!hidden',
             'iiprop' => 'url|size|sha1|mime',
             'iilimit' => '1',
             'titles' => $namespace . $title
@@ -121,6 +123,74 @@ class ApiService
         return $this->factory->make(QueryResponse::class, [
             'response' => $response->query
         ]);
+    }
+
+    public function getDepictsStatements($mediaInfoId)
+    {
+        if (!$mediaInfoId) {
+            return [];
+        }
+
+        $response = $this->request([
+            'action' => 'wbgetclaims',
+            'entity' => $mediaInfoId,
+            'property' => 'P180',
+        ]);
+
+        return $response->claims->P180 ?? [];
+    }
+
+    public function getEntityTerms($ids, $languages = 'en|mul|de|fr')
+    {
+        if (!count($ids)) {
+            return [];
+        }
+
+        $response = $this->request([
+            'action' => 'wbgetentities',
+            'ids' => implode('|', $ids),
+            'props' => 'labels|descriptions',
+            'languages' => $languages,
+        ]);
+
+        $languageCodes = explode('|', $languages);
+        $terms = [];
+        foreach ($response->entities ?? [] as $id => $entity) {
+            $labels = $this->entityTermValues($entity, 'labels', $languageCodes);
+            $descriptions = $this->entityTermValues($entity, 'descriptions', $languageCodes);
+            $terms[$id] = [
+                'label' => $this->firstEntityTerm($labels, $languageCodes, $id),
+                'description' => $this->firstEntityTerm($descriptions, $languageCodes, null, ['mul']),
+                'labels' => $labels,
+                'descriptions' => $descriptions,
+            ];
+        }
+
+        return $terms;
+    }
+
+    private function entityTermValues($entity, $termType, array $languageCodes)
+    {
+        $values = [];
+        foreach ($languageCodes as $language) {
+            if (isset($entity->{$termType}->{$language}->value)) {
+                $values[$language] = $entity->{$termType}->{$language}->value;
+            }
+        }
+        return $values;
+    }
+
+    private function firstEntityTerm(array $terms, array $languageCodes, $default = null, array $skipLanguages = [])
+    {
+        foreach ($languageCodes as $language) {
+            if (in_array($language, $skipLanguages)) {
+                continue;
+            }
+            if (isset($terms[$language])) {
+                return $terms[$language];
+            }
+        }
+        return $default;
     }
 
     /**
