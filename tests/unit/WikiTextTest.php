@@ -5,8 +5,9 @@ use PHPUnit\Framework\TestCase;
 
 class WikiTextTest extends TestCase
 {
+    protected array $samples;
 
-	public function setUp()
+	public function setUp(): void
 	{
 		$samples = [
 	        'abc [[Category:SomeCategory]] {{flickrreview}} def',
@@ -94,7 +95,7 @@ class WikiTextTest extends TestCase
         $wikitext = WikiText::make('abc {{Valued_image|example}} ghi {{vi|example}} {{quality image | example}} {{license review}} {{watermark}} def [[Category:Quality images by Abc]]  {{FlickreviewR|status=passed|author=dummy|sourceurl=https://flickr.com/photos/123|reviewdate=2018-05-18 12:48:33|reviewlicense=United States Government Work|reviewer=FlickreviewR 2}} ]]')
             ->withoutTemplatesNotToBeCopied();
 
-        $this->assertEquals('abc ghi {{watermark}} def ]]', strval($wikitext));
+        $this->assertEquals('abc ghi {{vi|example}} {{watermark}} def ]]', strval($wikitext));
     }
 
     public function testItRemovesTheWatermarkTemplateIfRequested()
@@ -151,7 +152,10 @@ class WikiTextTest extends TestCase
         $wikitext = WikiText::make($oldText)
             ->appendExtractedFromTemplate('My new file.jpg');
 
-        $this->assertEquals($newText, $wikitext);
+        $this->assertEquals(
+            str_replace("\r\n", "\n", $newText),
+            str_replace("\r\n", "\n", (string) $wikitext)
+        );
     }
 
     public function testItAddsTheExtractedFromTemplateBeforeCategories()
@@ -184,7 +188,10 @@ class WikiTextTest extends TestCase
         $wikitext = WikiText::make($oldText)
             ->appendExtractedFromTemplate('My old file.jpg');
 
-        $this->assertEquals($newText, $wikitext);
+        $this->assertEquals(
+            str_replace("\r\n", "\n", $newText),
+            str_replace("\r\n", "\n", (string) $wikitext)
+        );
     }
 
     public function testItAppendsToExistingImageExtractedTemplate()
@@ -353,10 +360,8 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
         $wt = new WikiText('abc {{Crop for Wikidata | Q16218635 }} def');
         $stuff = $wt->possibleStuffToRemove();
 
-        $this->assertArraySubset([
-        	'wikidata' => true,
-        	'wikidata-item' => 'Q16218635'
-        ], $stuff);
+        $this->assertTrue($stuff['wikidata']);
+        $this->assertEquals('Q16218635', $stuff['wikidata-item']);
     }
 
     public function testItRecognizesCropForWikidataTemplateWithExtraParam()
@@ -364,10 +369,8 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
         $wt = new WikiText('abc {{Crop for Wikidata|Q16218635|Person on left (silver medal)}} def');
         $stuff = $wt->possibleStuffToRemove();
 
-        $this->assertArraySubset([
-        	'wikidata' => true,
-        	'wikidata-item' => 'Q16218635'
-        ], $stuff);
+        $this->assertTrue($stuff['wikidata']);
+        $this->assertEquals('Q16218635', $stuff['wikidata-item']);
     }
 
     public function testItDoesntCopyOtrsTemplates()

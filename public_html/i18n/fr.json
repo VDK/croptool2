@@ -47,6 +47,7 @@
     "cropform-brightness": "Luminosite",
     "cropform-contrast": "Contraste",
     "cropform-saturation": "Saturation",
+    "cropform-adjustments-auto": "Auto",
     "cropform-adjustments-reset": "Reinitialiser",
     "cropform-aspect-ratio-values": "Format",
     "cropform-aspect-ratio-width": "Largeur du format",

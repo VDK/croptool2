@@ -198,34 +198,6 @@
     <div ng-show="user && metadata">
 
         <!-- ********************************************************************************************************
-             Header
-             **************************************************************************************************** -->
-        <div>
-            <p>
-                <span class="metadata-description-link">
-                    <a href="{{metadata.description}}" translate translate-value-site="{{currentUrlParams.site}}">view-at-site</a>.
-                </span>
-                <span translate translate-value-width="{{metadata.original.width}}" translate-value-height="{{metadata.original.height}}">original-dimensions</span>
-
-                <span ng-show="crop_dim && !cropresults">
-                    <span translate translate-value-width="{{crop_dim.w}}" translate-value-height="{{crop_dim.h}}">crop-dimensions</span>
-                </span>
-
-                <span ng-show="cropresults">
-                    <span translate translate-value-width="{{cropresults.crop.width}}" translate-value-height="{{cropresults.crop.height}}">crop-dimensions</span>
-                </span>
-
-                <span ng-show="currentUrlParams.page">
-                    <span translate>page</span>:
-                    <select ng-model="currentUrlParams.page"
-                            ng-options="option for option in availablePages track by option"
-                            ng-change="pageChanged()"></select>
-                </span>
-            </p>
-        </div>
-
-
-        <!-- ********************************************************************************************************
              Main form
              **************************************************************************************************** -->
         <div class="row2" ng-class="{'preview-layout': cropresults, 'upload-result-layout': uploadresults}" ng-show="metadata && !metadata.error" style="padding-bottom:1.5em;">
@@ -266,6 +238,28 @@
                     <img ng-src="{{cropPreviewUrl()}}" class="img-responsive" />
 
                 </div>
+
+                <p class="file-summary image-file-summary" ng-style="cropresults ? previewWidthStyle() : {}">
+                    <span class="metadata-description-link">
+                        <a href="{{metadata.description}}" translate translate-value-site="{{currentUrlParams.site}}">view-at-site</a>.
+                    </span>
+                    <span translate translate-value-width="{{metadata.original.width}}" translate-value-height="{{metadata.original.height}}">original-dimensions</span>
+
+                    <span ng-show="crop_dim && !cropresults">
+                        <span translate translate-value-width="{{crop_dim.w}}" translate-value-height="{{crop_dim.h}}">crop-dimensions</span>
+                    </span>
+
+                    <span ng-show="cropresults">
+                        <span translate translate-value-width="{{cropresults.crop.width}}" translate-value-height="{{cropresults.crop.height}}">crop-dimensions</span>
+                    </span>
+
+                    <span ng-show="currentUrlParams.page">
+                        <span translate>page</span>:
+                        <select ng-model="currentUrlParams.page"
+                                ng-options="option for option in availablePages track by option"
+                                ng-change="pageChanged()"></select>
+                    </span>
+                </p>
 
                 <div ng-show="uploadresults && uploadresults.result == 'Success'" class="upload-result-card" ng-style="previewBoxStyle()">
                     <a class="preview-result-note preview-result-success upload-success-link upload-result-message" ng-href="{{uploadresults.imageinfo.descriptionurl}}">
@@ -311,7 +305,7 @@
                     <input type="hidden" name="title" ng-model="currentUrlParams.title" />
 
                     <div class="orientation-control" ng-if="metadata.supportsRotation">
-                        <div class="crop-option-label orientation-control-header">
+                        <div class="filter-control-header orientation-control-header">
                             <label for="straightenInput" translate>cropform-orientation</label>
                             <span>{{rotation.angle | number:1}}&deg;</span>
                         </div>
@@ -326,7 +320,7 @@
                             </button>
                         </div>
                         <div class="straighten-control">
-                            <div class="crop-option-label straighten-control-header">
+                            <div class="filter-control-header straighten-control-header">
                                 <label for="straightenInput" translate>cropform-straighten</label>
                                 <span>{{rotation.straightenAngle | number:1}}&deg;</span>
                             </div>
@@ -344,7 +338,6 @@
                         </div>
                     </div>
 
-                    <div class="crop-option-label" translate>cropform-crop</div>
                     <div class="cropdim">
                         <label>
                           {{ 'top' | translate }}
@@ -372,29 +365,59 @@
                     </div>
 
                     <div class="crop-option-group filter-control-group" ng-if="metadata.supportsFilters && cropmethod !== 'lossless'">
-                        <div class="crop-option-label" translate>cropform-adjustments</div>
-                        <div class="cropdim filter-controls">
-                            <label>
-                                {{ 'cropform-brightness' | translate }}
-                                <input type="number" ng-model="filters.brightness" min="-100" max="100" step="1">
-                            </label>
-                            <label>
-                                {{ 'cropform-contrast' | translate }}
-                                <input type="number" ng-model="filters.contrast" min="-100" max="100" step="1">
-                            </label>
-                            <label>
-                                {{ 'cropform-saturation' | translate }}
-                                <input type="number" ng-model="filters.saturation" min="-100" max="100" step="1">
-                            </label>
-                            <button type="button" class="btn btn-default crop-action-btn filter-reset-btn" ng-click="resetFilters()" ng-disabled="!filtersActive()">
-                                <i class="fa fa-undo"></i>
-                                <span translate>cropform-adjustments-reset</span>
-                            </button>
+                        <div class="filter-controls">
+                            <div class="filter-control-row">
+                                <div class="filter-control-header">
+                                    <label for="brightnessInput" translate>cropform-brightness</label>
+                                    <span>{{filters.brightness || 0}}</span>
+                                </div>
+                                <input id="brightnessInput" type="range" min="-100" max="100" step="1" ng-model="filters.brightness">
+                                <button type="button" class="btn btn-default orientation-btn filter-auto-btn" ng-click="autoFilter('brightness')" title="{{'cropform-adjustments-auto' | translate}}">
+                                    <i class="fa fa-magic"></i>
+                                    <span class="sr-only" translate>cropform-adjustments-auto</span>
+                                </button>
+                                <button type="button" class="btn btn-default orientation-btn filter-reset-btn" ng-click="resetFilter('brightness')" ng-disabled="!filterActive('brightness')" title="{{'cropform-adjustments-reset' | translate}}">
+                                    <i class="fa fa-times-circle"></i>
+                                    <span class="sr-only" translate>cropform-adjustments-reset</span>
+                                </button>
+                            </div>
+                            <div class="filter-control-row">
+                                <div class="filter-control-header">
+                                    <label for="contrastInput" translate>cropform-contrast</label>
+                                    <span>{{filters.contrast || 0}}</span>
+                                </div>
+                                <input id="contrastInput" type="range" min="-100" max="100" step="1" ng-model="filters.contrast">
+                                <button type="button" class="btn btn-default orientation-btn filter-auto-btn" ng-click="autoFilter('contrast')" title="{{'cropform-adjustments-auto' | translate}}">
+                                    <i class="fa fa-magic"></i>
+                                    <span class="sr-only" translate>cropform-adjustments-auto</span>
+                                </button>
+                                <button type="button" class="btn btn-default orientation-btn filter-reset-btn" ng-click="resetFilter('contrast')" ng-disabled="!filterActive('contrast')" title="{{'cropform-adjustments-reset' | translate}}">
+                                    <i class="fa fa-times-circle"></i>
+                                    <span class="sr-only" translate>cropform-adjustments-reset</span>
+                                </button>
+                            </div>
+                            <div class="filter-control-row">
+                                <div class="filter-control-header">
+                                    <label for="saturationInput" translate>cropform-saturation</label>
+                                    <span>{{filters.saturation || 0}}</span>
+                                </div>
+                                <input id="saturationInput" type="range" min="-100" max="100" step="1" ng-model="filters.saturation">
+                                <button type="button" class="btn btn-default orientation-btn filter-auto-btn" ng-click="autoFilter('saturation')" title="{{'cropform-adjustments-auto' | translate}}">
+                                    <i class="fa fa-magic"></i>
+                                    <span class="sr-only" translate>cropform-adjustments-auto</span>
+                                </button>
+                                <button type="button" class="btn btn-default orientation-btn filter-reset-btn" ng-click="resetFilter('saturation')" ng-disabled="!filterActive('saturation')" title="{{'cropform-adjustments-reset' | translate}}">
+                                    <i class="fa fa-times-circle"></i>
+                                    <span class="sr-only" translate>cropform-adjustments-reset</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     <div class="crop-option-group aspect-ratio-group">
-                        <div class="crop-option-label" translate>cropform-aspect-ratio</div>
+                        <div class="filter-control-header aspect-ratio-header">
+                            <label translate>cropform-aspect-ratio</label>
+                        </div>
 
                         <div class="cropdim aspect-ratio-values">
                             <div class="ratio-control">
@@ -421,7 +444,9 @@
                     </div>
 
                     <div class="crop-option-group" ng-show="metadata.mime == 'image/jpeg'">
-                        <div class="crop-option-label" translate>cropform-method</div>
+                        <div class="filter-control-header crop-method-header">
+                            <label translate>cropform-method</label>
+                        </div>
 
                         <div class="crop-option-choices">
                             <label class="radio-inline"

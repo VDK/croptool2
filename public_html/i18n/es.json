@@ -47,6 +47,7 @@
     "cropform-brightness": "Brillo",
     "cropform-contrast": "Contraste",
     "cropform-saturation": "Saturacion",
+    "cropform-adjustments-auto": "Auto",
     "cropform-adjustments-reset": "Restablecer",
     "cropform-aspect-ratio-values": "Relacion",
     "cropform-aspect-ratio-width": "Anchura de la relacion de aspecto",

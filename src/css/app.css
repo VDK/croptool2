@@ -156,6 +156,25 @@ h2 {
     margin-bottom: 14px;
 }
 
+.file-summary {
+    margin: 4px 0 0;
+    color: #666;
+    font-size: 12px;
+    line-height: 1.25;
+}
+
+.image-file-summary {
+    box-sizing: border-box;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.file-summary .metadata-description-link {
+    display: none;
+}
+
 .title-submit-button {
     width: 100%;
 }
@@ -242,7 +261,7 @@ label {
     }
 }
 
-@media (pointer: coarse) {
+@media (pointer: coarse) and (max-width: 819px) {
     .row2:not(.preview-layout) {
         display: flex;
         flex-direction: column;
@@ -414,11 +433,11 @@ label {
 }
 
 .crop-dim-actions {
-    margin: -4px 0 14px;
+    margin: -2px 0 8px;
 }
 
 .orientation-control {
-    margin: 14px 0;
+    margin: 8px 0 10px;
 }
 
 .orientation-control-header,
@@ -445,7 +464,7 @@ label {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
 }
 
 .orientation-btn {
@@ -454,12 +473,18 @@ label {
     padding: 6px 8px;
 }
 
+.orientation-btn.ladda-button[data-loading] {
+    background: #6b7280;
+    border-color: #5f6875;
+    color: #fff;
+}
+
 .orientation-toolbar img {
     display: inline-block;
 }
 
 .straighten-control {
-    margin-top: 8px;
+    margin-top: 6px;
 }
 
 .straighten-control input[type="range"] {
@@ -664,7 +689,7 @@ label {
 }
 
 .crop-option-group {
-    margin: 14px 0;
+    margin: 10px 0;
 }
 
 .crop-option-label {
@@ -675,7 +700,7 @@ label {
     margin-bottom: 6px;
     color: #555;
     font-size: 90%;
-    font-weight: bold;
+    font-weight: normal;
 }
 
 .crop-option-label label {
@@ -868,7 +893,7 @@ form {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px 10px;
-    margin: 14px 0;
+    margin: 8px 0;
     font-size: 90%;
 }
 .cropdim label {
@@ -893,23 +918,50 @@ form {
 }
 
 .filter-controls {
-  align-items: end;
+  display: grid;
+  gap: 5px;
+  margin: 4px 0 8px;
 }
 
+.filter-control-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px 38px;
+  gap: 4px 6px;
+  align-items: center;
+}
+
+.filter-control-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #555;
+  font-size: 90%;
+}
+
+.filter-control-header label {
+  margin: 0;
+}
+
+.filter-control-header span {
+  font-family: monospace;
+}
+
+.filter-control-row input[type=range] {
+  width: 100%;
+}
+
+.filter-auto-btn,
 .filter-reset-btn {
   min-height: 34px;
-  padding: 4px 8px;
-}
-
-.filter-reset-btn .fa {
-  margin-right: 4px;
 }
 
 .aspect-ratio-values {
   grid-template-columns: 1fr;
   width: 150px;
   max-width: 100%;
-  margin: 8px 0;
+  margin: 4px 0 6px;
   justify-items: center;
 }
 
@@ -1090,12 +1142,15 @@ form {
     line-height: 1.35;
   }
 
-  .title-submit-column {
-    margin-top: 10px;
+  .title-panel .form-control,
+  .title-submit-button {
+    height: 34px;
   }
 
-  .title-submit-button {
-    min-height: 42px;
+  @media screen and (max-width: 767px) {
+    .title-submit-column {
+      margin-top: 10px;
+    }
   }
 
   @media screen and (max-width: 819px) {
@@ -1189,7 +1244,7 @@ form {
   }
 
   .crop-option-group {
-    margin: 16px 0;
+    margin: 10px 0;
   }
 
   .crop-option-label {

@@ -55,6 +55,7 @@
     "cropform-brightness": "Label for the brightness adjustment control.",
     "cropform-contrast": "Label for the contrast adjustment control.",
     "cropform-saturation": "Label for the saturation adjustment control.",
+    "cropform-adjustments-auto": "Button text for automatically suggesting one adjustment value.",
     "cropform-adjustments-reset": "Button text for resetting brightness, contrast, and saturation controls.",
     "cropform-aspect-ratio-values": "Label for the numeric aspect-ratio fields.",
     "cropform-aspect-ratio-width": "Accessible label for the aspect-ratio width field.",

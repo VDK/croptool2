@@ -1336,6 +1336,106 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         ));
     };
 
+    $scope.filterActive = function(filter) {
+        return !!($scope.filters && $scope.filters[filter]);
+    };
+
+    $scope.resetFilter = function(filter) {
+        if ($scope.filters && Object.prototype.hasOwnProperty.call($scope.filters, filter)) {
+            $scope.filters[filter] = 0;
+        }
+    };
+
+    function clampFilterValue(value, min, max) {
+        return Math.max(min, Math.min(max, Math.round(value)));
+    }
+
+    function currentCropFilterStats() {
+        var image = document.querySelector('#cropbox'),
+            width,
+            height,
+            sx,
+            sy,
+            sw,
+            sh,
+            canvas,
+            ctx,
+            data,
+            luminanceSum = 0,
+            luminanceSquaredSum = 0,
+            saturationSum = 0,
+            count,
+            i,
+            r,
+            g,
+            b,
+            max,
+            min,
+            luminance;
+
+        if (!image || !$scope.crop_dim || !pixelratio[0] || !pixelratio[1]) {
+            return null;
+        }
+
+        sx = Math.max(0, $scope.crop_dim.x / pixelratio[0]);
+        sy = Math.max(0, $scope.crop_dim.y / pixelratio[1]);
+        sw = Math.max(1, $scope.crop_dim.w / pixelratio[0]);
+        sh = Math.max(1, $scope.crop_dim.h / pixelratio[1]);
+        width = Math.max(1, Math.min(80, Math.round(sw)));
+        height = Math.max(1, Math.min(80, Math.round(sh)));
+        canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        ctx = canvas.getContext('2d');
+
+        try {
+            ctx.drawImage(image, sx, sy, sw, sh, 0, 0, width, height);
+            data = ctx.getImageData(0, 0, width, height).data;
+        } catch (e) {
+            return null;
+        }
+
+        count = width * height;
+        for (i = 0; i < data.length; i += 4) {
+            r = data[i] / 255;
+            g = data[i + 1] / 255;
+            b = data[i + 2] / 255;
+            max = Math.max(r, g, b);
+            min = Math.min(r, g, b);
+            luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            luminanceSum += luminance;
+            luminanceSquaredSum += luminance * luminance;
+            saturationSum += max === 0 ? 0 : (max - min) / max;
+        }
+
+        var mean = luminanceSum / count;
+        return {
+            mean: mean,
+            deviation: Math.sqrt(Math.max(0, luminanceSquaredSum / count - mean * mean)),
+            saturation: saturationSum / count
+        };
+    }
+
+    function autoFilterSuggestions() {
+        var stats = currentCropFilterStats();
+        if (!stats) {
+            return null;
+        }
+
+        return {
+            brightness: clampFilterValue((0.5 - stats.mean) * 70, -25, 25),
+            contrast: clampFilterValue((0.24 - stats.deviation) * 120, -10, 30),
+            saturation: clampFilterValue((0.28 - stats.saturation) * 70, -10, 25)
+        };
+    }
+
+    $scope.autoFilter = function(filter) {
+        var suggestions = autoFilterSuggestions();
+        if (suggestions && Object.prototype.hasOwnProperty.call(suggestions, filter)) {
+            $scope.filters[filter] = suggestions[filter];
+        }
+    };
+
     $scope.resetFilters = function() {
         $scope.filters = {brightness: 0, contrast: 0, saturation: 0};
     };

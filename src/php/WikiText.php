@@ -211,7 +211,7 @@ class WikiText
         );
 
         if ($surroundingLinebreaks) {
-            return "/\n *$out *\n/i";
+            return "/\r?\n *$out *\r?\n/i";
         }
         return "/$out/i";
     }
@@ -230,7 +230,13 @@ class WikiText
         $text = $this->text;
 
         // If linebreaks on both sides of the pattern, remove one of them.
-        $text = preg_replace($this->compilePattern($type, $pattern, $withParams, true), "\n", $text);
+        $text = preg_replace_callback(
+            $this->compilePattern($type, $pattern, $withParams, true),
+            function ($matches) {
+                return strpos($matches[0], "\r\n") !== false ? "\r\n" : "\n";
+            },
+            $text
+        );
 
         // Otherwise, preserve linebreaks.
         $text = preg_replace($this->compilePattern($type, $pattern, $withParams), '', $text);
