@@ -76,5 +76,10 @@
     "cropping-progress": "Espera mientras se crea el recorte...",
     "upload-progress": "Espera mientras se sube el archivo...",
     "results-success": "Recorte subido correctamente.",
-    "results-success-details-short": "Ver el archivo subido"
+    "results-success-details-short": "Ver el archivo subido",
+    "results-copy-filename": "Nombre del archivo",
+    "results-copy-url": "URL del archivo",
+    "results-copy": "Copiar",
+    "results-copied": "Copiado",
+    "results-copy-success": "Copiado al portapapeles."
 }

@@ -226,6 +226,11 @@ label {
     padding-bottom: 0 !important;
 }
 
+.row2.upload-result-layout .leftcol {
+    width: min(750px, 100%);
+    box-sizing: border-box;
+}
+
 @media screen and (min-width: 820px) {
     .row2:not(.preview-layout) {
         display: grid;
@@ -364,6 +369,7 @@ label {
 
 .upload-result-card {
     box-sizing: border-box;
+    width: 100%;
     max-width: 100%;
     margin-top: 12px;
     padding: 6px;
@@ -376,6 +382,49 @@ label {
     width: 100%;
     max-width: 100%;
     margin-bottom: 0;
+}
+
+.upload-result-copy-fields {
+    padding: 12px 6px 4px;
+}
+
+.upload-result-copy-field {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: normal;
+}
+
+.upload-result-copy-field:last-of-type {
+    margin-bottom: 0;
+}
+
+.upload-result-copy-label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: bold;
+}
+
+.upload-result-copy-control {
+    display: flex;
+    width: 100%;
+}
+
+.upload-result-copy-input {
+    min-width: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    font-family: monospace;
+}
+
+.upload-result-copy-button {
+    flex: 0 0 auto;
+    margin-left: -1px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.upload-result-copy-button .fa {
+    margin-right: 4px;
 }
 
 .upload-result-layout .preview-result-note {
@@ -397,6 +446,7 @@ label {
 .rightcol.preview-controls {
     -ms-flex: 0 0 auto;
     flex: 0 0 auto;
+    min-width: min(750px, 100%);
     max-width: 100%;
     box-sizing: border-box;
 }
@@ -1182,8 +1232,8 @@ form {
     }
 
     .rightcol.preview-controls {
-      margin-left: auto;
-      margin-right: auto;
+        margin-left: auto;
+        margin-right: auto;
     }
   }
 

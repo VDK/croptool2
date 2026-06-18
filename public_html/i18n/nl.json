@@ -76,5 +76,10 @@
     "cropping-progress": "Even geduld terwijl de uitsnede wordt gemaakt...",
     "upload-progress": "Even geduld terwijl het bestand wordt geupload...",
     "results-success": "Uitsnede succesvol geupload.",
-    "results-success-details-short": "Bekijk het geuploade bestand"
+    "results-success-details-short": "Bekijk het geuploade bestand",
+    "results-copy-filename": "Bestandsnaam",
+    "results-copy-url": "Bestands-URL",
+    "results-copy": "Kopieren",
+    "results-copied": "Gekopieerd",
+    "results-copy-success": "Naar het klembord gekopieerd."
 }

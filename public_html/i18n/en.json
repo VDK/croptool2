@@ -97,6 +97,11 @@
     "results-success": "Cropped image uploaded successfully.",
     "results-success-details": "You can now <a href=\"{{url}}\">review the result<\/a> (Refresh the page if you see the uncropped image). If you've made a substantial crop, you might need to update the description, templates and/or categories.",
     "results-success-details-short": "Review the uploaded file",
+    "results-copy-filename": "File name",
+    "results-copy-url": "File URL",
+    "results-copy": "Copy",
+    "results-copied": "Copied",
+    "results-copy-success": "Copied to clipboard.",
     "results-success-wikidata": "The image was added to {{link}}. You might want to review the item.",
     "results-failure": "Cropped image upload failed: {{error}}"
 }

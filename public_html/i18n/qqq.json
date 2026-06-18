@@ -97,6 +97,11 @@
     "results-success": "Success message shown after upload.",
     "results-success-details": "Details shown after a successful upload. Parameters:\n* {{url}} - link to the uploaded file.",
     "results-success-details-short": "Short link text shown after a successful upload. The surrounding notice links to the uploaded file.",
+    "results-copy-filename": "Label for the read-only uploaded filename field.",
+    "results-copy-url": "Label for the read-only uploaded file URL field.",
+    "results-copy": "Button text for copying an upload result value to the clipboard.",
+    "results-copied": "Temporary button text shown after an upload result value has been copied.",
+    "results-copy-success": "Accessible status message announced after an upload result value has been copied.",
     "results-success-wikidata": "Message shown after adding the cropped image to Wikidata. Parameters:\n* {{link}} - HTML link to the Wikidata item.",
     "results-failure": "Error message shown after upload failure. Parameters:\n* {{error}} - error returned by the server."
 }

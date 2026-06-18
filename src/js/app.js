@@ -1186,6 +1186,11 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
             $scope.ladda2 = false;
             if (response.result === 'Success') {
                 $scope.uploadresults = response; //.imageinfo.descriptionurl;
+                $scope.uploadResultFileName = $scope.overwrite == 'rename' ?
+                    $scope.newTitle :
+                    $scope.currentUrlParams.title;
+                $scope.uploadResultUrl = response.imageinfo.descriptionurl;
+                $scope.uploadResultCopied = '';
 
             } else if (response.result == 'Warning') {
                 var warnings = Object.keys(response.warnings);
@@ -1215,6 +1220,54 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
             $scope.error = 'Upload failed! ' + responseError(res.data);
         });
 
+    };
+
+    $scope.copyUploadResult = function(value, field) {
+        var textarea,
+            copyPromise;
+
+        if (!value) {
+            return;
+        }
+
+        function showCopied() {
+            $scope.$evalAsync(function() {
+                $scope.uploadResultCopied = field;
+                $timeout(function() {
+                    if ($scope.uploadResultCopied == field) {
+                        $scope.uploadResultCopied = '';
+                    }
+                }, 2000);
+            });
+        }
+
+        if ($window.navigator.clipboard && $window.navigator.clipboard.writeText) {
+            copyPromise = $window.navigator.clipboard.writeText(value);
+            copyPromise.then(showCopied, function() {
+                fallbackCopy();
+            });
+            return;
+        }
+
+        fallbackCopy();
+
+        function fallbackCopy() {
+            textarea = $window.document.createElement('textarea');
+            textarea.value = value;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            $window.document.body.appendChild(textarea);
+            textarea.select();
+
+            try {
+                if ($window.document.execCommand('copy')) {
+                    showCopied();
+                }
+            } finally {
+                $window.document.body.removeChild(textarea);
+            }
+        }
     };
 
     $scope.toggleMetadata = function(item) {

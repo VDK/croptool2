@@ -261,7 +261,7 @@
                     </span>
                 </p>
 
-                <div ng-show="uploadresults && uploadresults.result == 'Success'" class="upload-result-card" ng-style="previewBoxStyle()">
+                <div ng-show="uploadresults && uploadresults.result == 'Success'" class="upload-result-card">
                     <a class="preview-result-note preview-result-success upload-success-link upload-result-message" ng-href="{{uploadresults.imageinfo.descriptionurl}}">
                         <i class="fa fa-check-circle"></i>
                         <span class="upload-success-copy">
@@ -269,16 +269,43 @@
                             <span translate>results-success-details-short</span>
                         </span>
                     </a>
+                    <div class="upload-result-copy-fields">
+                        <div class="upload-result-copy-field">
+                            <label class="upload-result-copy-label" for="uploadResultFileName" translate>results-copy-filename</label>
+                            <span class="upload-result-copy-control">
+                                <input id="uploadResultFileName" class="form-control upload-result-copy-input" type="text" readonly value="{{uploadResultFileName}}" ng-click="$event.target.select()">
+                                <button class="btn btn-default upload-result-copy-button" type="button" ng-click="copyUploadResult(uploadResultFileName, 'filename')" ng-disabled="!uploadResultFileName">
+                                    <i class="fa" ng-class="uploadResultCopied == 'filename' ? 'fa-check' : 'fa-copy'"></i>
+                                    <span ng-if="uploadResultCopied != 'filename'" translate>results-copy</span>
+                                    <span ng-if="uploadResultCopied == 'filename'" translate>results-copied</span>
+                                </button>
+                            </span>
+                        </div>
+                        <div class="upload-result-copy-field">
+                            <label class="upload-result-copy-label" for="uploadResultUrl" translate>results-copy-url</label>
+                            <span class="upload-result-copy-control">
+                                <input id="uploadResultUrl" class="form-control upload-result-copy-input" type="text" readonly value="{{uploadResultUrl}}" ng-click="$event.target.select()">
+                                <button class="btn btn-default upload-result-copy-button" type="button" ng-click="copyUploadResult(uploadResultUrl, 'url')" ng-disabled="!uploadResultUrl">
+                                    <i class="fa" ng-class="uploadResultCopied == 'url' ? 'fa-check' : 'fa-copy'"></i>
+                                    <span ng-if="uploadResultCopied != 'url'" translate>results-copy</span>
+                                    <span ng-if="uploadResultCopied == 'url'" translate>results-copied</span>
+                                </button>
+                            </span>
+                        </div>
+                        <span class="sr-only" aria-live="polite">
+                            <span ng-if="uploadResultCopied" translate>results-copy-success</span>
+                        </span>
+                    </div>
                 </div>
 
-                <div ng-show="uploadresults && uploadresults.result != 'Success' && uploadresults.error" class="upload-result-card" ng-style="previewBoxStyle()">
+                <div ng-show="uploadresults && uploadresults.result != 'Success' && uploadresults.error" class="upload-result-card">
                     <p class="preview-result-note preview-result-danger upload-failure-note upload-result-message">
                         <i class="fa fa-times-circle"></i>
                         <span translate translate-value-error="{{uploadresults.error.info}}">results-failure</span>
                     </p>
                 </div>
 
-                <div ng-show="uploadresults && uploadresults.result == 'Success' && uploadresults.elems.wikidata" class="preview-result-note preview-result-info upload-wikidata-note" ng-style="previewBoxStyle()">
+                <div ng-show="uploadresults && uploadresults.result == 'Success' && uploadresults.elems.wikidata" class="preview-result-note preview-result-info upload-wikidata-note">
                     <i class="fa fa-info-circle"></i>
                     <span translate translate-values="{ link: cropresults.wikidataLink }">results-success-wikidata</span>
                 </div>

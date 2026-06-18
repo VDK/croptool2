@@ -76,5 +76,10 @@
     "cropping-progress": "Veuillez patienter pendant le recadrage...",
     "upload-progress": "Veuillez patienter pendant l'import...",
     "results-success": "Recadrage importe avec succes.",
-    "results-success-details-short": "Voir le fichier importe"
+    "results-success-details-short": "Voir le fichier importe",
+    "results-copy-filename": "Nom du fichier",
+    "results-copy-url": "URL du fichier",
+    "results-copy": "Copier",
+    "results-copied": "Copie",
+    "results-copy-success": "Copie dans le presse-papiers."
 }

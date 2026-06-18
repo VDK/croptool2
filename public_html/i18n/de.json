@@ -76,5 +76,10 @@
     "cropping-progress": "Bitte warten, während der Zuschnitt erstellt wird...",
     "upload-progress": "Bitte warten, während die Datei hochgeladen wird...",
     "results-success": "Zuschnitt erfolgreich hochgeladen.",
-    "results-success-details-short": "Hochgeladene Datei ansehen"
+    "results-success-details-short": "Hochgeladene Datei ansehen",
+    "results-copy-filename": "Dateiname",
+    "results-copy-url": "Datei-URL",
+    "results-copy": "Kopieren",
+    "results-copied": "Kopiert",
+    "results-copy-success": "In die Zwischenablage kopiert."
 }
