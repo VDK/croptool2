@@ -92,7 +92,14 @@ class WikiPage
     public function assertNotWaitingForLicenseReview()
     {
         if ($this->wikitext->waitingForReview()) {
-            throw new \RuntimeException('This file is currently waiting for license review. Please wait until the review has been completed before cropping the file, since cropped files cannot be auto-reviewed by the FlickreviewR bot.');
+            throw new \RuntimeException('file-waiting-for-license-review');
+        }
+    }
+
+    public function assertCanOverwrite()
+    {
+        if ($this->imageinfo->hasUploadProtection()) {
+            throw new \RuntimeException('This file is protected against uploading new versions. Please upload the crop as a new file.');
         }
     }
 

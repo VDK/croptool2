@@ -87,6 +87,7 @@ class FileController
             'orientation' => $original->orientation,
             'categories' => $page->imageinfo->categories,
             'supportsRotation' => $page->file->supportsRotation(),
+            'supportsFilters' => $page->file->supportsFilters(),
             'overrideResultExtension' => $page->file->overrideResultExtension()
         ]));
 
@@ -129,6 +130,9 @@ class FileController
         $width = intval($request->getQueryParams()['width'] ?? 0);
         $height = intval($request->getQueryParams()['height'] ?? 0);
         $rotation = floatval($request->getQueryParams()['rotate'] ?? 0);
+        $brightness = max(-100.0, min(100.0, floatval($request->getQueryParams()['brightness'] ?? 0)));
+        $contrast = max(-100.0, min(100.0, floatval($request->getQueryParams()['contrast'] ?? 0)));
+        $saturation = max(-100.0, min(100.0, floatval($request->getQueryParams()['saturation'] ?? 0)));
         $cropMethod = $request->getQueryParams()['method'] ??'precise';
 
         $t0 = microtime(true) * 1000;
@@ -144,7 +148,7 @@ class FileController
         }
 
         $original = $editor->open($page->file, $pageno);
-        $crop = $original->crop($destPath, $cropMethod, $x, $y, $width, $height, $rotation);
+        $crop = $original->crop($destPath, $cropMethod, $x, $y, $width, $height, $rotation, $brightness, $contrast, $saturation);
         $thumb = $crop->thumb($thumbPath);
 
         $logger->info('[{sha1}] Cropped using {method} mode', [
@@ -169,11 +173,21 @@ class FileController
         if ($rotation) {
             $dim[] = "rotated {$rotation}°";
         }
+        if ($brightness != 0) {
+            $dim[] = "brightness {$brightness}";
+        }
+        if ($contrast != 0) {
+            $dim[] = "contrast {$contrast}";
+        }
+        if ($saturation != 0) {
+            $dim[] = "saturation {$saturation}";
+        }
 
         $options = $page->wikitext->possibleStuffToRemove();
         $language = $this->metadataLanguage($request->getQueryParams()['language'] ?? 'en');
         $metadata = [
             'depicts' => $page->site == 'commons.wikimedia.org' ? $page->getDepicts($language) : [],
+            'categories' => $this->categoriesMetadata($page->imageinfo->categories),
         ];
         $wd = null;
         if (isset($options['wikidata-item'])) {
@@ -288,6 +302,7 @@ class FileController
 
             // Remove templates before appending {{Extracted from}}
             $wikitext = $wikitext->withoutTemplatesNotToBeCopied();
+            $wikitext = $wikitext->withoutCategories($this->deselectedOriginalCategories($page, $metadata));
 
             if (array_get($stuffToRemove, 'wikidata')) {
                 $wikitext = $wikitext->withoutCropForWikidataTemplate();
@@ -341,6 +356,16 @@ class FileController
         return $this->metadataValues($metadata, $group, $valueKey, true);
     }
 
+    protected function categoriesMetadata($categories)
+    {
+        return array_map(function($category) {
+            return [
+                'name' => $category,
+                'selected' => true,
+            ];
+        }, $categories);
+    }
+
     protected function selectedOriginalDepictsIds($page, $metadata)
     {
         $selectedIds = $this->selectedMetadataValues($metadata, 'depicts', 'id');
@@ -349,6 +374,13 @@ class FileController
         }, $page->getDepicts());
 
         return array_values(array_intersect($selectedIds, $originalIds));
+    }
+
+    protected function deselectedOriginalCategories($page, $metadata)
+    {
+        $deselectedCategories = $this->metadataValues($metadata, 'categories', 'name', false);
+
+        return array_values(array_intersect($deselectedCategories, $page->imageinfo->categories));
     }
 
     protected function metadataValues($metadata, $group, $valueKey, $selected)

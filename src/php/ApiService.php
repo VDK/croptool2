@@ -114,6 +114,8 @@ class ApiService
             'prop' => 'imageinfo|categories|info',
             'format' => 'json',
             'inprop' => 'protection',
+            'clshow' => '!hidden',
+            'cllimit' => 'max',
             'iiprop' => 'url|size|sha1|mime',
             'iilimit' => '1',
             'titles' => $namespace . $title

@@ -138,6 +138,11 @@ directive('ctCropper', ['$timeout', function($timeout) {
                     toggleDragModeOnDblclick: false,
                     wheelZoomRatio: 0.05,
 
+                    // Needed to apply filters when re-initializing cropper.
+                    ready: function() {
+                        scope.$emit('cropper-ready');
+                    },
+
                     // restrict cropbox to size of canvas, and restrict canvas
                     // to fit within container
                     viewMode: 2,
@@ -268,6 +273,28 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         }
     }
 
+    function commonsDocumentationUrl(page) {
+        var suffix = $scope.currentLanguage == 'en' ? '' : '/' + $scope.currentLanguage;
+
+        return '//commons.wikimedia.org/wiki/' + page + suffix;
+    }
+
+    $scope.commonsCropToolUrl = function() {
+        return commonsDocumentationUrl('Commons:CropTool');
+    };
+
+    $scope.commonsOverwriteUrl = function() {
+        return commonsDocumentationUrl('Commons:Overwriting_existing_files');
+    };
+
+    $scope.existingFileUrl = function() {
+        if (!$scope.currentUrlParams.site || !$scope.newTitle) {
+            return '';
+        }
+
+        return '//' + $scope.currentUrlParams.site + '/wiki/File:' + encodeURIComponent($scope.newTitle.replace(/ /g, '_'));
+    };
+
     $scope.currentUrlParams = {};
     /*.site = '';     // Site-part of the URL
     $scope.currentUrlParams.title = '';    // Title-part of the URL
@@ -277,6 +304,19 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
             results = regex.exec(source ? source : location.search);
         return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
+    function translatedError(message) {
+        var translated;
+        if (!message) {
+            return message;
+        }
+        translated = $translate.instant(message);
+        return translated == message ? message : translated;
+    }
+
+    function responseError(data) {
+        return translatedError(data?.exception?.[0]?.message ?? data.error);
     }
 
     function localizedTerm(term, kind) {
@@ -494,6 +534,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         }
         $scope.rotation = {angle: 0, rightAngle: 0, straightenAngle: 0};
         $scope.preRotationCropmethod = null;
+        $scope.filters = {brightness: 0, contrast: 0, saturation: 0};
 
         $http.get('./api/file/info?' + $httpParamSerializer({
             title: $scope.currentUrlParams.title,
@@ -507,12 +548,12 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
             var response = res.data;
 
             if (response.error) {
-                $scope.error = response.error;
+                $scope.error = translatedError(response.error);
                 $scope.metadata = null;
                 return;
             }
             if ( res.data?.exception?.[0]?.message ) {
-                $scope.error = res.data.exception[0].message;
+                $scope.error = responseError(res.data);
                 $scope.metadata = null;
                 return;
             }
@@ -612,12 +653,13 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
                 } else {
                     cropText = ' (cropped)';
                 }
-                $scope.newTitle = $scope.currentUrlParams.title.substr(0, p) + cropText + ext;
+                $scope.suggestedNewTitle = $scope.currentUrlParams.title.substr(0, p) + cropText + ext;
+                $scope.newTitle = $scope.suggestedNewTitle;
             }
 
         }, function(res) {
             $scope.metadata = null;
-            $scope.error = res.data?.exception?.[0]?.message ?? res.data.error;
+            $scope.error = responseError(res.data);
             $scope.busy = false;
         });
     }
@@ -644,7 +686,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
             });
         }, function(res) {
             $scope.error = 'An error occurred: ' + res.status + ' ' +
-                ( res.data?.exception?.[0]?.message ?? res.data.error );
+                responseError(res.data);
             $scope.borderLocatorBusy = false;
         });
     };
@@ -664,7 +706,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
             updateRotationAngle();
         }, function(res) {
             $scope.error = 'An error occurred: ' + res.status + ' ' +
-                ( res.data?.exception?.[0]?.message ?? res.data.error );
+                responseError(res.data);
             $scope.autoStraightenBusy = false;
         });
     };
@@ -673,6 +715,9 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         if ($scope.straightenLocksCropMethod()) {
             $scope.cropmethod = 'precise';
             return;
+        }
+        if ($scope.cropmethod === 'lossless') {
+            $scope.resetFilters();
         }
         LocalStorageService.set('croptool-cropmethod', $scope.cropmethod);
     };
@@ -731,6 +776,40 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         }
 
         return ($scope.cropresults.thumb ? $scope.cropresults.thumb.width : $scope.cropresults.crop.width);
+    };
+
+    $scope.previewBoxStyle = function() {
+        var width = $scope.previewWidth();
+
+        if (!width) {
+            return {};
+        }
+
+        return {
+            width: width + 'px',
+            marginLeft: 'auto',
+            marginRight: 'auto'
+        };
+    };
+
+    $scope.previewWidthStyle = function() {
+        var width = $scope.previewWidth();
+
+        if (!width) {
+            return {};
+        }
+
+        return {
+            width: width + 'px'
+        };
+    };
+
+    $scope.cropPreviewUrl = function() {
+        if (!$scope.cropresults) {
+            return '';
+        }
+
+        return (($scope.cropresults.thumb ? $scope.cropresults.thumb.name : $scope.cropresults.crop.name) + '?ts=' + $scope.cropresults.time);
     };
 
     $scope.rotateLeft = function() {
@@ -983,6 +1062,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         // Resetting state
         $scope.error = '';
         $scope.newTitle = '';
+        $scope.suggestedNewTitle = '';
         $scope.cropresults = null;
         $scope.uploadresults = null;
 
@@ -1032,7 +1112,10 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
             y: $scope.crop_dim.y,
             rotate: $scope.crop_dim.rotate,
             width: $scope.crop_dim.w,
-            height: $scope.crop_dim.h
+            height: $scope.crop_dim.h,
+            brightness: $scope.filters.brightness,
+            contrast: $scope.filters.contrast,
+            saturation: $scope.filters.saturation
         }))
         .then(function(res) {
             var response = res.data;
@@ -1058,7 +1141,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
             syncConfirmOverwriteForNewTitle();
             $scope.updateUploadComment();
         }, function(res) {
-            $scope.error = '[Error] ' + ( res.data?.exception?.[0]?.message ?? res.data.error );
+            $scope.error = '[Error] ' + responseError(res.data);
             $scope.ladda = false;
         });
 
@@ -1087,6 +1170,9 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
             metadata: $scope.cropresults.page.metadata,
             store: true
         };
+        if ($scope.overwrite == 'rename') {
+            params.metadata = $scope.cropresults.page.metadata;
+        }
 
         if ($scope.ignoreWarnings || ($scope.overwrite == 'rename' && $scope.confirmOverwrite)) {
             params.ignorewarnings = '1';
@@ -1101,6 +1187,11 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
             $scope.ladda2 = false;
             if (response.result === 'Success') {
                 $scope.uploadresults = response; //.imageinfo.descriptionurl;
+                $scope.uploadResultFileName = $scope.overwrite == 'rename' ?
+                    $scope.newTitle :
+                    $scope.currentUrlParams.title;
+                $scope.uploadResultUrl = response.imageinfo.descriptionurl;
+                $scope.uploadResultCopied = '';
 
             } else if (response.result == 'Warning') {
                 var warnings = Object.keys(response.warnings);
@@ -1127,9 +1218,57 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
 
         }, function(res) {
             $scope.ladda2 = false;
-            $scope.error = 'Upload failed! ' + (res.data?.exception?.[0]?.message ?? res.data.error);
+            $scope.error = 'Upload failed! ' + responseError(res.data);
         });
 
+    };
+
+    $scope.copyUploadResult = function(value, field) {
+        var textarea,
+            copyPromise;
+
+        if (!value) {
+            return;
+        }
+
+        function showCopied() {
+            $scope.$evalAsync(function() {
+                $scope.uploadResultCopied = field;
+                $timeout(function() {
+                    if ($scope.uploadResultCopied == field) {
+                        $scope.uploadResultCopied = '';
+                    }
+                }, 2000);
+            });
+        }
+
+        if ($window.navigator.clipboard && $window.navigator.clipboard.writeText) {
+            copyPromise = $window.navigator.clipboard.writeText(value);
+            copyPromise.then(showCopied, function() {
+                fallbackCopy();
+            });
+            return;
+        }
+
+        fallbackCopy();
+
+        function fallbackCopy() {
+            textarea = $window.document.createElement('textarea');
+            textarea.value = value;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            $window.document.body.appendChild(textarea);
+            textarea.select();
+
+            try {
+                if ($window.document.execCommand('copy')) {
+                    showCopied();
+                }
+            } finally {
+                $window.document.body.removeChild(textarea);
+            }
+        }
     };
 
     $scope.toggleMetadata = function(item) {
@@ -1187,7 +1326,176 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
     $scope.overwrite = 'rename';
     $scope.rotation = {angle: 0, rightAngle: 0, straightenAngle: 0};
     $scope.preRotationCropmethod = null;
+    $scope.filters = {brightness: 0, contrast: 0, saturation: 0};
     $scope.aspectRatioChanged();
+
+    /**
+     * Adapted from MagickSafeReciprocal in ImageMagick (MagickCore/statistic-private.h).
+     *
+     * License: https://imagemagick.org/script/license.php
+     */
+    function safeReciprocal(value) {
+        if (Math.abs(value) < 1e-15) {
+            return 1e15;
+        }
+        return 1.0 / value;
+    }
+
+    /**
+     * Approximates the brightness/contrast filter used by ImageMagick.
+     *
+     * This approximation isn't perfect, but it's pretty close. An SVG is used
+     * to apply the filter instead of a regular CSS filter since CSS filters
+     * are multiplicative, not additive like ImageMagick.
+     */
+    function updateFilters(brightness, contrast, saturation) {
+        var slope = contrast >= 0
+            ? 100.0 * safeReciprocal(100.0 - contrast)
+            : 0.01 * contrast + 1.0;
+        var intercept = (0.01 * brightness - 0.5) * slope + 0.5;
+
+        var transfer = document.querySelector('#crop-filter feComponentTransfer');
+        var funcs = transfer ? transfer.children : [];
+        for (var i = 0; i < funcs.length; i++) {
+            funcs[i].setAttribute('slope', slope);
+            funcs[i].setAttribute('intercept', intercept);
+        }
+
+        var matrix = document.querySelector('#crop-filter feColorMatrix');
+        if (matrix) {
+            matrix.setAttribute('values', 1.0 + saturation / 100.0);
+        }
+    }
+
+    function applyFilters() {
+        // Clamping is needed since input validation is only advisory.
+        var brightness = Math.max(-100, Math.min(100, $scope.filters.brightness || 0));
+        var contrast = Math.max(-100, Math.min(100, $scope.filters.contrast || 0));
+        var saturation = Math.max(-100, Math.min(100, $scope.filters.saturation || 0));
+        var filterValue = (brightness || contrast || saturation) ? 'url(#crop-filter)' : '';
+
+        updateFilters(brightness, contrast, saturation);
+
+        var images = document.querySelectorAll('.cropper-crop-box img');
+        for (var i = 0; i < images.length; i++) {
+            images[i].style.filter = filterValue;
+        }
+    }
+
+    $scope.filtersActive = function() {
+        return !!($scope.filters && (
+            $scope.filters.brightness ||
+            $scope.filters.contrast ||
+            $scope.filters.saturation
+        ));
+    };
+
+    $scope.filterActive = function(filter) {
+        return !!($scope.filters && $scope.filters[filter]);
+    };
+
+    $scope.resetFilter = function(filter) {
+        if ($scope.filters && Object.prototype.hasOwnProperty.call($scope.filters, filter)) {
+            $scope.filters[filter] = 0;
+        }
+    };
+
+    function clampFilterValue(value, min, max) {
+        return Math.max(min, Math.min(max, Math.round(value)));
+    }
+
+    function currentCropFilterStats() {
+        var image = document.querySelector('#cropbox'),
+            width,
+            height,
+            sx,
+            sy,
+            sw,
+            sh,
+            canvas,
+            ctx,
+            data,
+            luminanceSum = 0,
+            luminanceSquaredSum = 0,
+            saturationSum = 0,
+            count,
+            i,
+            r,
+            g,
+            b,
+            max,
+            min,
+            luminance;
+
+        if (!image || !$scope.crop_dim || !pixelratio[0] || !pixelratio[1]) {
+            return null;
+        }
+
+        sx = Math.max(0, $scope.crop_dim.x / pixelratio[0]);
+        sy = Math.max(0, $scope.crop_dim.y / pixelratio[1]);
+        sw = Math.max(1, $scope.crop_dim.w / pixelratio[0]);
+        sh = Math.max(1, $scope.crop_dim.h / pixelratio[1]);
+        width = Math.max(1, Math.min(80, Math.round(sw)));
+        height = Math.max(1, Math.min(80, Math.round(sh)));
+        canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        ctx = canvas.getContext('2d');
+
+        try {
+            ctx.drawImage(image, sx, sy, sw, sh, 0, 0, width, height);
+            data = ctx.getImageData(0, 0, width, height).data;
+        } catch (e) {
+            return null;
+        }
+
+        count = width * height;
+        for (i = 0; i < data.length; i += 4) {
+            r = data[i] / 255;
+            g = data[i + 1] / 255;
+            b = data[i + 2] / 255;
+            max = Math.max(r, g, b);
+            min = Math.min(r, g, b);
+            luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            luminanceSum += luminance;
+            luminanceSquaredSum += luminance * luminance;
+            saturationSum += max === 0 ? 0 : (max - min) / max;
+        }
+
+        var mean = luminanceSum / count;
+        return {
+            mean: mean,
+            deviation: Math.sqrt(Math.max(0, luminanceSquaredSum / count - mean * mean)),
+            saturation: saturationSum / count
+        };
+    }
+
+    function autoFilterSuggestions() {
+        var stats = currentCropFilterStats();
+        if (!stats) {
+            return null;
+        }
+
+        return {
+            brightness: clampFilterValue((0.5 - stats.mean) * 70, -25, 25),
+            contrast: clampFilterValue((0.24 - stats.deviation) * 120, -10, 30),
+            saturation: clampFilterValue((0.28 - stats.saturation) * 70, -10, 25)
+        };
+    }
+
+    $scope.autoFilter = function(filter) {
+        var suggestions = autoFilterSuggestions();
+        if (suggestions && Object.prototype.hasOwnProperty.call(suggestions, filter)) {
+            $scope.filters[filter] = suggestions[filter];
+        }
+    };
+
+    $scope.resetFilters = function() {
+        $scope.filters = {brightness: 0, contrast: 0, saturation: 0};
+    };
+
+    $scope.$watchGroup(['filters.brightness', 'filters.contrast', 'filters.saturation'], applyFilters);
+    $scope.$on('cropper-ready', applyFilters);
 
     // On filename change, check with the MediaWiki API if the file exists.
     // Delay 500 ms before checking in case the user is in the process of typing.
@@ -1231,12 +1539,12 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
                 var response = res.data;
                 var key = site + ':' + title;
 
-                $scope.error = response.error;
+                $scope.error = translatedError(response.error);
 
                 if (response.error) {
-                    $scope.error = response.error;
+                    $scope.error = translatedError(response.error);
 		} else if ( res.data?.exception?.[0]?.message ) {
-			$scope.error = res.data.exception[0].message;
+			$scope.error = responseError(res.data);
                 } else {
                     $scope.exists[key] = response.exists;
                     if (key == newTitleExistsKey()) {
@@ -1303,15 +1611,23 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         if ($scope.cropresults.page.elems.wikidata) {
             s += ' Crop for [[:wikidata:' + $scope.cropresults.page.elems['wikidata-item'] + '|Wikidata]].';
         }
-        var omittedDepicts = ($scope.cropresults.page.metadata.depicts || [])
-            .filter(function(depicts) { return !depicts.selected; })
-            .map(function(depicts) { return depicts.id; });
-        if (omittedDepicts.length) {
-            var omitted = [];
-            if (omittedDepicts.length) {
-                omitted.push('depicts: ' + omittedDepicts.join(', '));
+        if ($scope.overwrite == 'rename') {
+            var omittedCategories = ($scope.cropresults.page.metadata.categories || [])
+                .filter(function(category) { return !category.selected; })
+                .map(function(category) { return category.name; });
+            var omittedDepicts = ($scope.cropresults.page.metadata.depicts || [])
+                .filter(function(depicts) { return !depicts.selected; })
+                .map(function(depicts) { return depicts.id; });
+            if (omittedCategories.length || omittedDepicts.length) {
+                var omitted = [];
+                if (omittedCategories.length) {
+                    omitted.push('categories: ' + omittedCategories.join(', '));
+                }
+                if (omittedDepicts.length) {
+                    omitted.push('depicts: ' + omittedDepicts.join(', '));
+                }
+                s += ' Omitted metadata (' + omitted.join('; ') + ').';
             }
-            s += ' Omitted metadata (' + omitted.join('; ') + ').';
         }
         $scope.uploadComment = s;
     };
