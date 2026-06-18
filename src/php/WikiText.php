@@ -196,6 +196,15 @@ class WikiText
     protected function compilePattern($type, $names, $withParams=true, $surroundingLinebreaks=false)
     {
         $withParams = ($type == self::CATEGORIES) ? false : $withParams;
+        $recursiveTemplate = '';
+        $params = '';
+
+        if ($withParams) {
+            // Keep the first parameter in capture group 3 for callers that inspect it.
+            // Possessive runs and pipe-delimited parameters avoid catastrophic backtracking.
+            $params = '(\|((?:[^{}|]++|(?&nestedTemplate))*)(?:\|(?:[^{}|]++|(?&nestedTemplate))*)*)?';
+            $recursiveTemplate = '(?(DEFINE)(?<nestedTemplate>\{\{(?:[^{}]++|(?&nestedTemplate))*\}\}))';
+        }
 
         $out = str_replace(
             [
@@ -204,16 +213,15 @@ class WikiText
             ],
             [
                 '(' . implode('|', $names) . ')',
-		// Match parameters that could potentially include other templates recursively
-                ($withParams ? '(\|([^\}{|]*(?<rec1>\{\{(?:[^{}]++|(?&rec1))*\}\})?[^}|{]*)(?:\|(?:[^\}{]*(?<rec>\{\{(?:[^{}]++|(?&rec))*\}\})?[^}{]*)*)?)?' : '')
+                $params
             ],
             $this->patterns[$type]
         );
 
         if ($surroundingLinebreaks) {
-            return "/\r?\n *$out *\r?\n/i";
+            return "/\r?\n *$out *\r?\n$recursiveTemplate/i";
         }
-        return "/$out/i";
+        return "/$out$recursiveTemplate/i";
     }
 
     /**
@@ -237,11 +245,20 @@ class WikiText
             },
             $text
         );
+        $this->assertValidPregResult($text);
 
         // Otherwise, preserve linebreaks.
         $text = preg_replace($this->compilePattern($type, $pattern, $withParams), '', $text);
+        $this->assertValidPregResult($text);
 
         return $this->cloneIfModified($text);
+    }
+
+    private function assertValidPregResult($result)
+    {
+        if (is_null($result)) {
+            throw new \RuntimeException('Unable to process wikitext: ' . preg_last_error_msg());
+        }
     }
 
     /**

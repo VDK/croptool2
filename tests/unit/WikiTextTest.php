@@ -98,6 +98,52 @@ class WikiTextTest extends TestCase
         $this->assertEquals('abc ghi {{vi|example}} {{watermark}} def ]]', strval($wikitext));
     }
 
+    public function testItPreservesMetadataWhenRemovingAComplexFlickrReviewTemplate()
+    {
+        $source = <<<'WIKITEXT'
+=={{int:filedesc}}==
+{{Information
+|description={{de|1=Session: STRESSTEST FÜR DIE DEMOKRATIE: SIND WIR BEREIT FÜR DEN ERNSTFALL IN OSTDEUTSCHLAND? — Speaker: DANIEL GÜNTHER , LINA MITSCHKE , ROMY ARNOLD , ALEXANDER PRINZ , MELANIE STEIN}}
+|date=2026-05-20 13:01:39
+|source=[https://www.flickr.com/photos/36976328@N04/55283118280/ re:publica 26 - Tag 3]
+|author={{label| Q115793831 }} / [https://www.flickr.com/photos/36976328@N04/ re:publica]
+|permission=
+|other versions=
+}}
+
+=={{int:license-header}}==
+{{CC-BY-SA-4.0}}
+
+{{FlickreviewR|status=passed|author=re:publica 2026|sourceurl=https://flickr.com/photos/36976328@N04/55283118280|archive=|reviewdate=2026-06-02 15:18:47|reviewlicense=cc-by-sa-4.0|reviewer=FlickreviewR 2}}[[Category:Photographs by Jan Zappner]]
+[[Category:Re:publica 2026 day 3|2026-05-20 13:01:39]]
+
+[[Category:Uploaded with pattypan]]
+[[Category:Romy Arnold]]
+WIKITEXT;
+
+        $wikitext = WikiText::make($source)->withoutTemplatesNotToBeCopied();
+
+        $this->assertStringContainsString('{{Information', (string) $wikitext);
+        $this->assertStringContainsString('{{CC-BY-SA-4.0}}', (string) $wikitext);
+        $this->assertStringContainsString('[[Category:Romy Arnold]]', (string) $wikitext);
+        $this->assertStringNotContainsString('{{FlickreviewR', (string) $wikitext);
+    }
+
+    public function testItThrowsInsteadOfReturningEmptyWikitextWhenRegexProcessingFails()
+    {
+        $oldLimit = ini_get('pcre.backtrack_limit');
+        ini_set('pcre.backtrack_limit', '1');
+
+        try {
+            WikiText::make('{{FlickreviewR|status=passed}}')->withoutTemplatesNotToBeCopied();
+            $this->fail('Expected regex processing to fail.');
+        } catch (\RuntimeException $e) {
+            $this->assertStringStartsWith('Unable to process wikitext:', $e->getMessage());
+        } finally {
+            ini_set('pcre.backtrack_limit', $oldLimit);
+        }
+    }
+
     public function testItRemovesTheWatermarkTemplateIfRequested()
     {
         $oldText = WikiText::make('abc {{Remove border}} {{watermark}} def');
