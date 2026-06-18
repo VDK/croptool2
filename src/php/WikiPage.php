@@ -103,13 +103,6 @@ class WikiPage
         }
     }
 
-    public function assertCanOverwrite()
-    {
-        if ($this->imageinfo->hasUploadProtection()) {
-            throw new \RuntimeException('This file is protected against uploading new versions. Please upload the crop as a new file.');
-        }
-    }
-
     public function getTitleParameter()
     {
         return $this->_title;
