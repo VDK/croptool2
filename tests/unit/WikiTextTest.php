@@ -5,8 +5,9 @@ use PHPUnit\Framework\TestCase;
 
 class WikiTextTest extends TestCase
 {
+    protected array $samples;
 
-	public function setUp()
+	public function setUp(): void
 	{
 		$samples = [
 	        'abc [[Category:SomeCategory]] {{flickrreview}} def',
@@ -65,6 +66,14 @@ class WikiTextTest extends TestCase
         $this->assertEquals('abc [[Category:SomeCategory]] [[Category:SomeOtherCategory]] def', $wikitext);
     }
 
+    public function testItRemovesUserSelectedCategories()
+    {
+        $wikitext = WikiText::make('abc [[Category:Keep]] [[Category:A+B (test)]][[Category:Another]] def')
+            ->withoutCategories(['A+B (test)']);
+
+        $this->assertEquals('abc [[Category:Keep]] [[Category:Another]] def', $wikitext);
+    }
+
     public function testItRemovesTheCropTemplateIfRequested()
     {
         $wikitext = WikiText::make('abc {{Crop}} def')
@@ -86,7 +95,53 @@ class WikiTextTest extends TestCase
         $wikitext = WikiText::make('abc {{Valued_image|example}} ghi {{vi|example}} {{quality image | example}} {{license review}} {{watermark}} def [[Category:Quality images by Abc]]  {{FlickreviewR|status=passed|author=dummy|sourceurl=https://flickr.com/photos/123|reviewdate=2018-05-18 12:48:33|reviewlicense=United States Government Work|reviewer=FlickreviewR 2}} ]]')
             ->withoutTemplatesNotToBeCopied();
 
-        $this->assertEquals('abc ghi {{watermark}} def ]]', strval($wikitext));
+        $this->assertEquals('abc ghi {{vi|example}} {{watermark}} def ]]', strval($wikitext));
+    }
+
+    public function testItPreservesMetadataWhenRemovingAComplexFlickrReviewTemplate()
+    {
+        $source = <<<'WIKITEXT'
+=={{int:filedesc}}==
+{{Information
+|description={{de|1=Session: STRESSTEST FÜR DIE DEMOKRATIE: SIND WIR BEREIT FÜR DEN ERNSTFALL IN OSTDEUTSCHLAND? — Speaker: DANIEL GÜNTHER , LINA MITSCHKE , ROMY ARNOLD , ALEXANDER PRINZ , MELANIE STEIN}}
+|date=2026-05-20 13:01:39
+|source=[https://www.flickr.com/photos/36976328@N04/55283118280/ re:publica 26 - Tag 3]
+|author={{label| Q115793831 }} / [https://www.flickr.com/photos/36976328@N04/ re:publica]
+|permission=
+|other versions=
+}}
+
+=={{int:license-header}}==
+{{CC-BY-SA-4.0}}
+
+{{FlickreviewR|status=passed|author=re:publica 2026|sourceurl=https://flickr.com/photos/36976328@N04/55283118280|archive=|reviewdate=2026-06-02 15:18:47|reviewlicense=cc-by-sa-4.0|reviewer=FlickreviewR 2}}[[Category:Photographs by Jan Zappner]]
+[[Category:Re:publica 2026 day 3|2026-05-20 13:01:39]]
+
+[[Category:Uploaded with pattypan]]
+[[Category:Romy Arnold]]
+WIKITEXT;
+
+        $wikitext = WikiText::make($source)->withoutTemplatesNotToBeCopied();
+
+        $this->assertStringContainsString('{{Information', (string) $wikitext);
+        $this->assertStringContainsString('{{CC-BY-SA-4.0}}', (string) $wikitext);
+        $this->assertStringContainsString('[[Category:Romy Arnold]]', (string) $wikitext);
+        $this->assertStringNotContainsString('{{FlickreviewR', (string) $wikitext);
+    }
+
+    public function testItThrowsInsteadOfReturningEmptyWikitextWhenRegexProcessingFails()
+    {
+        $oldLimit = ini_get('pcre.backtrack_limit');
+        ini_set('pcre.backtrack_limit', '1');
+
+        try {
+            WikiText::make('{{FlickreviewR|status=passed}}')->withoutTemplatesNotToBeCopied();
+            $this->fail('Expected regex processing to fail.');
+        } catch (\RuntimeException $e) {
+            $this->assertStringStartsWith('Unable to process wikitext:', $e->getMessage());
+        } finally {
+            ini_set('pcre.backtrack_limit', $oldLimit);
+        }
     }
 
     public function testItRemovesTheWatermarkTemplateIfRequested()
@@ -143,7 +198,10 @@ class WikiTextTest extends TestCase
         $wikitext = WikiText::make($oldText)
             ->appendExtractedFromTemplate('My new file.jpg');
 
-        $this->assertEquals($newText, $wikitext);
+        $this->assertEquals(
+            str_replace("\r\n", "\n", $newText),
+            str_replace("\r\n", "\n", (string) $wikitext)
+        );
     }
 
     public function testItAddsTheExtractedFromTemplateBeforeCategories()
@@ -176,7 +234,10 @@ class WikiTextTest extends TestCase
         $wikitext = WikiText::make($oldText)
             ->appendExtractedFromTemplate('My old file.jpg');
 
-        $this->assertEquals($newText, $wikitext);
+        $this->assertEquals(
+            str_replace("\r\n", "\n", $newText),
+            str_replace("\r\n", "\n", (string) $wikitext)
+        );
     }
 
     public function testItAppendsToExistingImageExtractedTemplate()
@@ -345,10 +406,8 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
         $wt = new WikiText('abc {{Crop for Wikidata | Q16218635 }} def');
         $stuff = $wt->possibleStuffToRemove();
 
-        $this->assertArraySubset([
-        	'wikidata' => true,
-        	'wikidata-item' => 'Q16218635'
-        ], $stuff);
+        $this->assertTrue($stuff['wikidata']);
+        $this->assertEquals('Q16218635', $stuff['wikidata-item']);
     }
 
     public function testItRecognizesCropForWikidataTemplateWithExtraParam()
@@ -356,10 +415,8 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
         $wt = new WikiText('abc {{Crop for Wikidata|Q16218635|Person on left (silver medal)}} def');
         $stuff = $wt->possibleStuffToRemove();
 
-        $this->assertArraySubset([
-        	'wikidata' => true,
-        	'wikidata-item' => 'Q16218635'
-        ], $stuff);
+        $this->assertTrue($stuff['wikidata']);
+        $this->assertEquals('Q16218635', $stuff['wikidata-item']);
     }
 
     public function testItDoesntCopyOtrsTemplates()

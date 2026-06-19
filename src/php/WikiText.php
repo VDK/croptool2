@@ -196,6 +196,15 @@ class WikiText
     protected function compilePattern($type, $names, $withParams=true, $surroundingLinebreaks=false)
     {
         $withParams = ($type == self::CATEGORIES) ? false : $withParams;
+        $recursiveTemplate = '';
+        $params = '';
+
+        if ($withParams) {
+            // Keep the first parameter in capture group 3 for callers that inspect it.
+            // Possessive runs and pipe-delimited parameters avoid catastrophic backtracking.
+            $params = '(\|((?:[^{}|]++|(?&nestedTemplate))*)(?:\|(?:[^{}|]++|(?&nestedTemplate))*)*)?';
+            $recursiveTemplate = '(?(DEFINE)(?<nestedTemplate>\{\{(?:[^{}]++|(?&nestedTemplate))*\}\}))';
+        }
 
         $out = str_replace(
             [
@@ -204,16 +213,15 @@ class WikiText
             ],
             [
                 '(' . implode('|', $names) . ')',
-		// Match parameters that could potentially include other templates recursively
-                ($withParams ? '(\|([^\}{|]*(?<rec1>\{\{(?:[^{}]++|(?&rec1))*\}\})?[^}|{]*)(?:\|(?:[^\}{]*(?<rec>\{\{(?:[^{}]++|(?&rec))*\}\})?[^}{]*)*)?)?' : '')
+                $params
             ],
             $this->patterns[$type]
         );
 
         if ($surroundingLinebreaks) {
-            return "/\n *$out *\n/i";
+            return "/\r?\n *$out *\r?\n$recursiveTemplate/i";
         }
-        return "/$out/i";
+        return "/$out$recursiveTemplate/i";
     }
 
     /**
@@ -230,12 +238,27 @@ class WikiText
         $text = $this->text;
 
         // If linebreaks on both sides of the pattern, remove one of them.
-        $text = preg_replace($this->compilePattern($type, $pattern, $withParams, true), "\n", $text);
+        $text = preg_replace_callback(
+            $this->compilePattern($type, $pattern, $withParams, true),
+            function ($matches) {
+                return strpos($matches[0], "\r\n") !== false ? "\r\n" : "\n";
+            },
+            $text
+        );
+        $this->assertValidPregResult($text);
 
         // Otherwise, preserve linebreaks.
         $text = preg_replace($this->compilePattern($type, $pattern, $withParams), '', $text);
+        $this->assertValidPregResult($text);
 
         return $this->cloneIfModified($text);
+    }
+
+    private function assertValidPregResult($result)
+    {
+        if (is_null($result)) {
+            throw new \RuntimeException('Unable to process wikitext: ' . preg_last_error_msg());
+        }
     }
 
     /**
@@ -371,6 +394,26 @@ class WikiText
         )->removePattern(
             self::CATEGORIES,
             $this->categoriesNotToBeCopied
+        );
+    }
+
+    /**
+     * Remove categories selected by the user from the copied wikitext.
+     *
+     * @param string[] $categories Category names without namespace.
+     * @return WikiText
+     */
+    public function withoutCategories($categories)
+    {
+        if (!count($categories)) {
+            return $this;
+        }
+
+        return $this->removePattern(
+            self::CATEGORIES,
+            array_map(function($category) {
+                return preg_quote($category, '/');
+            }, $categories)
         );
     }
 

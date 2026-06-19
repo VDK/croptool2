@@ -16,6 +16,7 @@ class AuthController
     {
         $response->getBody()->write((string)json_encode([
             'user' =>  $user->username,
+            'language' => $user->language,
         ]));
         return $response;
     }

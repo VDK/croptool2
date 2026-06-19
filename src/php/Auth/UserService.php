@@ -9,6 +9,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @property null|string username
+ * @property null|string language
  */
 class UserService
 {
@@ -54,6 +55,30 @@ class UserService
         return $res->query->userinfo->name;
     }
 
+    protected function fetchLanguage()
+    {
+        if (!$this->auth->isAuthorized()) {
+            return null;
+        }
+
+        try {
+            $res = $this->api->request([
+                'format' => 'json',
+                'action' => 'query',
+                'meta' => 'userinfo',
+                'uiprop' => 'options',
+            ]);
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        if (isset($res->error) || isset($res->query->userinfo->anon)) {
+            return null;
+        }
+
+        return $res->query->userinfo->options->language ?? null;
+    }
+
     /**
      * Returns the username of the authorized user or NULL if not authorized
      */
@@ -65,5 +90,16 @@ class UserService
             $_SESSION['username'] = $this->fetchUsername();
         }
         return $_SESSION['username'];
+    }
+
+    /**
+     * Returns the interface language preference of the authorized user or NULL if unavailable
+     */
+    public function getLanguageParameter()
+    {
+        if (!isset($_SESSION['language'])) {
+            $_SESSION['language'] = $this->fetchLanguage();
+        }
+        return $_SESSION['language'];
     }
 }
