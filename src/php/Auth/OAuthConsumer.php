@@ -177,7 +177,7 @@ class OAuthConsumer implements AuthServiceInterface
             $this->logger->error('[oauth] ' . $requestTokenSha1 . ': Failed to fetch permanent token: ' . htmlspecialchars($token->error));
             throw new \RuntimeException('Error retrieving token: ' . htmlspecialchars($token->error));
         }
-        if (!is_object($token) || !isset($token->key) || !isset($token->secret)) {
+        if (!is_object($token) || !isset($token->oauth_token) || !isset($token->oauth_token_secret)) {
             header("HTTP/1.1 500 Internal Server Error");
             $this->logger->error('[oauth] ' . $requestTokenSha1 . ': Failed to fetch permanent token, got invalid response.');
             throw new \RuntimeException('Invalid response from token request');
@@ -187,7 +187,7 @@ class OAuthConsumer implements AuthServiceInterface
 
         $twoYears = time() + 60 * 60 * 24 * 365 * 2;
 
-        $this->gTokenKey = $token->key;
+        $this->gTokenKey = $token->oauth_token;
         if (!setcookie('mwKey',
             Crypto::encrypt($this->gTokenKey, $this->cookieKey),
             $twoYears,
@@ -201,7 +201,7 @@ class OAuthConsumer implements AuthServiceInterface
             throw new \RuntimeException('Failed to store key');
         }
 
-        $this->gTokenSecret = $token->secret; // 40 bytes
+        $this->gTokenSecret = $token->oauth_token_secret; // 40 bytes
         if (!setcookie('mwSecret',
             Crypto::encrypt($this->gTokenSecret, $this->cookieKey), // ~ 150 bytes
             $twoYears,
@@ -364,7 +364,7 @@ class OAuthConsumer implements AuthServiceInterface
             echo 'Error retrieving token: ' . htmlspecialchars($token->message);
             exit(0);
         }
-        if (!is_object($token) || !isset($token->key) || !isset($token->secret)) {
+        if (!is_object($token) || !isset($token->oauth_token) || !isset($token->oauth_token_secret)) {
             header("HTTP/1.1 500 Internal Server Error");
             $this->logger->error('[oauth] Invalid response from initiate request: ' . substr( (string)$data, 0, 200 ) );
             echo 'Invalid response from token request';
@@ -373,19 +373,19 @@ class OAuthConsumer implements AuthServiceInterface
 
         // Now we have the request token, we need to save it for later.
 
-        $this->session->put('mwKey', $token->key);
-        $this->session->put('mwSecret', $token->secret);  // What do we need this for?
+        $this->session->put('mwKey', $token->oauth_token);
+        $this->session->put('mwSecret', $token->oauth_token_secret);  // What do we need this for?
 
         // Then we send the user off to authorize
         $url = $this->mwOAuthUrl . '/authorize';
 
         $url .= strpos($url, '?') ? '&' : '?';
         $url .= http_build_query(array(
-            'oauth_token' => $token->key,
+            'oauth_token' => $token->oauth_token,
             'oauth_consumer_key' => $this->gConsumerKey,
         ));
 
-        $this->logger->info('[oauth] ' . substr(sha1($token->key), 0, 7) . ': Requesting authorization');
+        $this->logger->info('[oauth] ' . substr(sha1($token->oauth_token), 0, 7) . ': Requesting authorization');
         return $url;
     }
 
