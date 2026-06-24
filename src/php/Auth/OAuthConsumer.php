@@ -366,7 +366,7 @@ class OAuthConsumer implements AuthServiceInterface
         }
         if (!is_object($token) || !isset($token->key) || !isset($token->secret)) {
             header("HTTP/1.1 500 Internal Server Error");
-            $this->logger->error('[oauth] Invalid response from initiate request');
+            $this->logger->error('[oauth] Invalid response from initiate request: ' . substr( (string)$data, 0, 200 ) );
             echo 'Invalid response from token request';
             exit(0);
         }
