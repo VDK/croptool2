@@ -77,12 +77,16 @@ h2 {
     fill: currentColor;
 }
 
+.ct-icon-flip svg {
+    transform: scaleX(-1);
+}
+
 .alert .ct-icon {
     margin-right: 4px;
 }
 
 .btn .ct-icon + span:not(.sr-only) {
-    margin-left: 4px;
+    margin-inline-start: 4px;
 }
 
 .app-current-file {
@@ -333,7 +337,7 @@ label {
 
 .filter-preview-toggle {
     position: absolute;
-    right: 10px;
+    inset-inline-end: 10px;
     bottom: 10px;
     z-index: 10;
     display: flex;
@@ -480,6 +484,19 @@ label {
     margin-left: -1px;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+[dir="rtl"] .upload-result-copy-button {
+    margin-left: 0;
+    margin-right: -1px;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 .upload-result-layout .preview-result-note {
@@ -576,6 +593,7 @@ label {
     gap: 6px;
     align-items: center;
     margin-bottom: 6px;
+    direction: ltr;
 }
 
 .orientation-btn {
@@ -1646,7 +1664,7 @@ form {
   }
 
   .filter-preview-toggle {
-    right: 8px;
+    inset-inline-end: 8px;
     bottom: 8px;
     width: 44px;
     height: 44px;
@@ -1807,21 +1825,88 @@ html .cropper-face {
     text-align: right;
 }
 
-[dir="rtl"] .upload-result-copy-button {
-    margin-left: 0;
-    margin-right: -1px;
-    border-top-left-radius: 3px;
-    border-bottom-left-radius: 3px;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-
-[dir="rtl"] .upload-result-copy-button .fa {
-    margin-right: 0;
-    margin-left: 4px;
-}
-
 [dir="rtl"] .row2.preview-layout .leftcol {
     padding-right: 10px;
     padding-left: 0;
+}
+
+/* RTL: flip border-radius on input + action groups */
+[dir="rtl"] .value-action-btn {
+    margin-left: 0;
+    margin-right: -1px;
+}
+
+[dir="rtl"] .value-stepper,
+[dir="rtl"] .straighten-stepper {
+    border-left: 1px solid #ccc;
+    border-right: 0;
+}
+
+/* RTL: override Bootstrap 3 input-group border-radius (DOM-order based, wrong in RTL) */
+[dir="rtl"] .straighten-angle-input .form-control,
+[dir="rtl"] .filter-value-input .form-control {
+    border-radius: 0 4px 4px 0;
+}
+
+[dir="rtl"] .straighten-angle-input .straighten-stepper .btn,
+[dir="rtl"] .filter-value-input .value-stepper .btn {
+    border-radius: 0;
+}
+
+[dir="rtl"] .straighten-angle-input .input-group-btn:last-child > .btn,
+[dir="rtl"] .filter-value-input .input-group-btn:last-child > .btn {
+    border-radius: 4px 0 0 4px;
+}
+
+[dir="rtl"] .upload-result-copy-input {
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+[dir="rtl"] .value-action-group .value-action-btn:last-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+[dir="rtl"] .value-action-group .input-group .input-group-addon:last-child,
+[dir="rtl"] .value-action-group .input-group .value-stepper:last-child,
+[dir="rtl"] .value-action-group .input-group .straighten-stepper:last-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+[dir="rtl"] .cropdim-stepper {
+    margin-left: 0;
+    margin-right: -1px;
+    border-left: 1px solid #ccc;
+    border-right: 0;
+    border-radius: 4px 0 0 4px;
+}
+
+[dir="rtl"] .cropdim-input-control:focus-within input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+[dir="rtl"] .ratio-stepper {
+    margin-left: 0;
+    margin-right: -1px;
+    border-left: 1px solid #ccc;
+    border-right: 0;
+    border-radius: 4px 0 0 4px;
+}
+
+[dir="rtl"] .ratio-number-control:focus-within input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
 }

@@ -292,9 +292,9 @@ window.CropToolAssetVersion = 'dev';
                             <span class="upload-result-copy-control">
                                 <input id="uploadResultFileName" class="form-control upload-result-copy-input" type="text" readonly value="{{uploadResultFileName}}" ng-click="$event.target.select()">
                                 <button class="btn btn-default upload-result-copy-button" type="button" ng-click="copyUploadResult(uploadResultFileName, 'filename')" ng-disabled="!uploadResultFileName">
-                                    <span ct-icon="{{uploadResultCopied == 'filename' ? 'check' : 'copy'}}"></span>
                                     <span ng-if="uploadResultCopied != 'filename'" translate>results-copy</span>
                                     <span ng-if="uploadResultCopied == 'filename'" translate>results-copied</span>
+                                    <span ct-icon="{{uploadResultCopied == 'filename' ? 'check' : 'copy'}}"></span>
                                 </button>
                             </span>
                         </div>
@@ -303,9 +303,9 @@ window.CropToolAssetVersion = 'dev';
                             <span class="upload-result-copy-control">
                                 <input id="uploadResultUrl" class="form-control upload-result-copy-input" type="text" readonly value="{{uploadResultUrl}}" ng-click="$event.target.select()">
                                 <button class="btn btn-default upload-result-copy-button" type="button" ng-click="copyUploadResult(uploadResultUrl, 'url')" ng-disabled="!uploadResultUrl">
-                                    <span ct-icon="{{uploadResultCopied == 'url' ? 'check' : 'copy'}}"></span>
                                     <span ng-if="uploadResultCopied != 'url'" translate>results-copy</span>
                                     <span ng-if="uploadResultCopied == 'url'" translate>results-copied</span>
+                                    <span ct-icon="{{uploadResultCopied == 'url' ? 'check' : 'copy'}}"></span>
                                 </button>
                             </span>
                         </div>
