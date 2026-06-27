@@ -825,14 +825,14 @@ window.CropToolAssetVersion = 'dev';
                         <div class="crop-submit-actions">
                         <div class="crop-submit-group">
                         <button type="submit"
-                            class="btn btn-large btn-primary"
+                            class="btn btn-large btn-primary crop-submit-btn"
                             ladda="ladda2"
                             ng-disabled="ladda2 || uploadBlockedByFilenameConflict()"
                             data-style="slide-up">
                             <span translate>previewform-upload-btn</span>
                         </button>
 
-                        <button type="button" class="btn btn-large" ng-click="back()" ng-disabled="ladda2">
+                        <button type="button" class="btn btn-large btn-default crop-submit-btn" ng-click="back()" ng-disabled="ladda2">
                             <span translate>previewform-back-btn</span>
                         </button>
                         </div>

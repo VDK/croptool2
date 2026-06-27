@@ -562,7 +562,6 @@ label {
 .crop-submit-group {
     display: flex;
     gap: 6px;
-    direction: ltr;
 }
 
 .crop-submit-group .btn.ladda-button {
@@ -1692,9 +1691,13 @@ form {
   }
 
   .crop-actions .btn,
-  .crop-submit-actions .btn {
-    min-height: 44px;
+  .crop-submit-group {
     width: 100%;
+  }
+
+  .crop-submit-group .crop-submit-btn {
+    min-height: 44px;
+    flex: 1 1 0;
   }
 
   .filter-preview-toggle {
