@@ -14,12 +14,6 @@ config(['$translateProvider', function($translateProvider) {
 }]).
 
 directive('ctIcon', ['$rootScope', function($rootScope) {
-    var shouldFlip = {
-        'link-external': { flip: true },
-        'copy': { flip: true },
-        'help-notice': { flip: true, exceptions: ['he', 'yi'] },
-        'cut': { flip: true }
-    };
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
@@ -39,12 +33,14 @@ directive('ctIcon', ['$rootScope', function($rootScope) {
                     element.empty();
                     return;
                 }
-                var baseLang = (document.documentElement.lang || 'en').toLowerCase().split(/[-_]/)[0];
-                var shouldFlipIcon = document.dir === 'rtl' && shouldFlip[name];
-                if (shouldFlipIcon) {
-                    var exceptions = shouldFlipIcon.exceptions || [];
-                    if (exceptions.indexOf(baseLang) === -1) {
-                        element.addClass('ct-icon-flip');
+                if (document.dir === 'rtl') {
+                    var flipRule = window.CropToolIconFlip && window.CropToolIconFlip[name];
+                    if (flipRule) {
+                        var baseLang = (document.documentElement.lang || 'en').toLowerCase().split(/[-_]/)[0];
+                        var exceptions = flipRule.exceptions || [];
+                        if (exceptions.indexOf(baseLang) === -1) {
+                            element.addClass('ct-icon-flip');
+                        }
                     }
                 }
                 element.html('<svg viewBox="0 0 20 20" focusable="false"><g>' + path + '</g></svg>');

@@ -35,3 +35,14 @@ window.CropToolCodexIcons = {
     'redo': '<path d="M17 7.293v1.414l-4.69 4.707L10.895 12l3-3H9a4 4 0 00-4 4v5H3v-5a6 6 0 016-6h4.896l-3-3 1.414-1.414z"/>',
     'cut': '<path d="M9 19H7v-2h2zm4 0h-2v-2h2zm4 0h-2v-2h2zm2-2h-2v-2h2zM10 0a3 3 0 110 6 3 3 0 01-1-.175V7h6v2H9v6H7V9H5.826A3 3 0 113 7h4V3a3 3 0 013-3M3 9a1 1 0 100 2 1 1 0 000-2m7-7a1 1 0 100 2 1 1 0 000-2M19 13h-2v-2h2zm0-4h-2V7h2z"/>'
 };
+
+// RTL shouldFlip rules from @wikimedia/codex-icons
+// Maps local icon name -> { flip: true, exceptions?: [...] }
+window.CropToolIconFlip = {
+    'copy': { flip: true },
+    'cut': { flip: true },
+    'link-external': { flip: true },
+    'help-notice': { flip: true, exceptions: ['he', 'yi'] },
+    'undo': { flip: true },
+    'redo': { flip: true }
+};
