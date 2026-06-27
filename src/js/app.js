@@ -13,21 +13,31 @@ config(['$translateProvider', function($translateProvider) {
     $translateProvider.preferredLanguage('en');
 }]).
 
-directive('ctIcon', [function() {
+directive('ctIcon', ['$rootScope', function($rootScope) {
+    var shouldFlip = { 'link-external': true, 'copy': true };
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
             attrs.$observe('ctIcon', renderIcon);
+            $rootScope.$on('$translateChangeSuccess', function() {
+                renderIcon(attrs.ctIcon);
+            });
 
             function renderIcon(name) {
-                var path = window.CropToolCodexIcons && window.CropToolCodexIcons[name];
+                var icons = window.CropToolCodexIcons || {};
+                var rtlName = document.dir === 'rtl' ? name + '-rtl' : null;
+                var path = icons[rtlName] || icons[name];
                 element.addClass('ct-icon');
+                element.removeClass('ct-icon-flip');
                 element.attr('aria-hidden', 'true');
                 if (!path) {
                     element.empty();
                     return;
                 }
-                element.html('<svg viewBox="0 0 20 20" focusable="false">' + path + '</svg>');
+                if (document.dir === 'rtl' && shouldFlip[name]) {
+                    element.addClass('ct-icon-flip');
+                }
+                element.html('<svg viewBox="0 0 20 20" focusable="false"><g>' + path + '</g></svg>');
             }
         }
     };
@@ -350,9 +360,9 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         var baseLanguage = (language || 'en').toLowerCase().split(/[-_]/)[0];
 
         $scope.currentLanguage = language;
-        $translate.use(language);
         $window.document.documentElement.lang = language || 'en';
         $window.document.documentElement.dir = rtlLanguages.indexOf(baseLanguage) == -1 ? 'ltr' : 'rtl';
+        $translate.use(language);
     }
 
     function languageAvailable(language) {
