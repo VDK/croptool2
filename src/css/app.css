@@ -464,43 +464,66 @@ label {
 .upload-result-copy-label {
     display: block;
     margin-bottom: 4px;
-    font-weight: bold;
+    font-weight: 700;
+    font-size: 13px;
+    color: #202122;
 }
 
 .upload-result-copy-control {
     display: flex;
+    align-items: stretch;
     width: 100%;
 }
 
 .upload-result-copy-input {
+    flex: 1;
     min-width: 0;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #a2a9b1;
+    border-right: 0;
+    background: #f8f9fa;
+    border-radius: 2px 0 0 2px;
+    font-family: inherit;
+    height: 32px;
+    padding: 5px 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    outline: 0;
+}
+
+.upload-result-copy-input.monospace {
     font-family: monospace;
 }
 
 .upload-result-copy-button {
     flex: 0 0 auto;
-    margin-left: -1px;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    height: 34px;
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    height: 32px;
+    padding: 0 12px;
+    box-sizing: border-box;
+    border: 1px solid #a2a9b1;
+    background: #f8f9fa;
+    border-radius: 0 2px 2px 0;
+    color: #202122;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.upload-result-copy-button:hover {
+    background: #fff;
+}
+
+[dir="rtl"] .upload-result-copy-input {
+    border-right: 1px solid #a2a9b1;
+    border-left: 0;
+    border-radius: 0 2px 2px 0;
 }
 
 [dir="rtl"] .upload-result-copy-button {
-    margin-left: 0;
-    margin-right: -1px;
-    border-top-left-radius: 3px;
-    border-bottom-left-radius: 3px;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-
-.upload-result-layout .preview-result-note {
-    margin-bottom: 0;
+    border-radius: 2px 0 0 2px;
 }
 
 .rightcol {
@@ -533,6 +556,17 @@ label {
 
 .crop-submit-actions {
     margin-top: 12px;
+    display: flex;
+}
+
+.crop-submit-group {
+    display: flex;
+    gap: 6px;
+    direction: ltr;
+}
+
+.crop-submit-group .btn.ladda-button {
+    position: relative;
 }
 
 .crop-action-btn {

@@ -290,22 +290,33 @@ window.CropToolAssetVersion = 'dev';
                         <div class="upload-result-copy-field">
                             <label class="upload-result-copy-label" for="uploadResultFileName" translate>results-copy-filename</label>
                             <span class="upload-result-copy-control">
-                                <input id="uploadResultFileName" class="form-control upload-result-copy-input" type="text" readonly value="{{uploadResultFileName}}" ng-click="$event.target.select()">
-                                <button class="btn btn-default upload-result-copy-button" type="button" ng-click="copyUploadResult(uploadResultFileName, 'filename')" ng-disabled="!uploadResultFileName">
+                                <input id="uploadResultFileName" class="upload-result-copy-input" type="text" readonly value="{{uploadResultFileName}}" ng-click="$event.target.select()">
+                                <button class="upload-result-copy-button" type="button" ng-click="copyUploadResult(uploadResultFileName, 'filename')" ng-disabled="!uploadResultFileName">
+                                    <span ct-icon="{{uploadResultCopied == 'filename' ? 'check' : 'copy'}}"></span>
                                     <span ng-if="uploadResultCopied != 'filename'" translate>results-copy</span>
                                     <span ng-if="uploadResultCopied == 'filename'" translate>results-copied</span>
-                                    <span ct-icon="{{uploadResultCopied == 'filename' ? 'check' : 'copy'}}"></span>
+                                </button>
+                            </span>
+                        </div>
+                        <div class="upload-result-copy-field">
+                            <label class="upload-result-copy-label" for="uploadResultWikiText" translate>results-copy-wikitext</label>
+                            <span class="upload-result-copy-control">
+                                <input id="uploadResultWikiText" class="upload-result-copy-input monospace" type="text" readonly value="{{uploadResultWikiText}}" ng-click="$event.target.select()">
+                                <button class="upload-result-copy-button" type="button" ng-click="copyUploadResult(uploadResultWikiText, 'wikitext')" ng-disabled="!uploadResultWikiText">
+                                    <span ct-icon="{{uploadResultCopied == 'wikitext' ? 'check' : 'copy'}}"></span>
+                                    <span ng-if="uploadResultCopied != 'wikitext'" translate>results-copy</span>
+                                    <span ng-if="uploadResultCopied == 'wikitext'" translate>results-copied</span>
                                 </button>
                             </span>
                         </div>
                         <div class="upload-result-copy-field">
                             <label class="upload-result-copy-label" for="uploadResultUrl" translate>results-copy-url</label>
                             <span class="upload-result-copy-control">
-                                <input id="uploadResultUrl" class="form-control upload-result-copy-input" type="text" readonly value="{{uploadResultUrl}}" ng-click="$event.target.select()">
-                                <button class="btn btn-default upload-result-copy-button" type="button" ng-click="copyUploadResult(uploadResultUrl, 'url')" ng-disabled="!uploadResultUrl">
+                                <input id="uploadResultUrl" class="upload-result-copy-input" type="text" readonly value="{{uploadResultUrl}}" ng-click="$event.target.select()">
+                                <button class="upload-result-copy-button" type="button" ng-click="copyUploadResult(uploadResultUrl, 'url')" ng-disabled="!uploadResultUrl">
+                                    <span ct-icon="{{uploadResultCopied == 'url' ? 'check' : 'copy'}}"></span>
                                     <span ng-if="uploadResultCopied != 'url'" translate>results-copy</span>
                                     <span ng-if="uploadResultCopied == 'url'" translate>results-copied</span>
-                                    <span ct-icon="{{uploadResultCopied == 'url' ? 'check' : 'copy'}}"></span>
                                 </button>
                             </span>
                         </div>
@@ -811,10 +822,8 @@ window.CropToolAssetVersion = 'dev';
                             </label>
                         </div>
 
-                        <button type="button" class="btn btn-large" ng-click="back()" ng-disabled="ladda2">
-                            <span translate>previewform-back-btn</span>
-                        </button>
-
+                        <div class="crop-submit-actions">
+                        <div class="crop-submit-group">
                         <button type="submit"
                             class="btn btn-large btn-primary"
                             ladda="ladda2"
@@ -822,6 +831,12 @@ window.CropToolAssetVersion = 'dev';
                             data-style="slide-up">
                             <span translate>previewform-upload-btn</span>
                         </button>
+
+                        <button type="button" class="btn btn-large" ng-click="back()" ng-disabled="ladda2">
+                            <span translate>previewform-back-btn</span>
+                        </button>
+                        </div>
+                        </div>
 
                     </form>
 

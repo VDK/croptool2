@@ -14,7 +14,7 @@ config(['$translateProvider', function($translateProvider) {
 }]).
 
 directive('ctIcon', ['$rootScope', function($rootScope) {
-    var shouldFlip = { 'link-external': true, 'copy': true };
+    var shouldFlip = { 'link-external': true, 'copy': true, 'help-notice': true, 'cut': true };
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
@@ -343,6 +343,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         { code: 'de', label: 'Deutsch' },
         { code: 'es', label: 'Espanol' },
         { code: 'zh', label: '中文' },
+        { code: 'ar', label: 'العربية' },
         { code: 'he', label: 'עברית' }
     ];
     var storedLanguage = LocalStorageService.get('croptool-language');
@@ -1342,6 +1343,9 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
                     $scope.newTitle :
                     $scope.currentUrlParams.title;
                 $scope.uploadResultUrl = response.imageinfo.descriptionurl;
+                $scope.uploadResultWikiText = '[[File:' + ($scope.overwrite == 'rename' ?
+                    $scope.newTitle :
+                    $scope.currentUrlParams.title) + '|thumb]]';
                 $scope.uploadResultCopied = '';
 
             } else if (response.result == 'Warning') {
