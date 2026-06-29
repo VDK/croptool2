@@ -2,7 +2,14 @@
 
 // Icon data derived from @wikimedia/codex-icons (Wikimedia Codex design system)
 // Available on Toolforge CDN: //tools-static.wmflabs.org/cdnjs/ajax/libs/codex/2.3.2/codex.min.js
+// Icon files: //tools-static.wmflabs.org/cdnjs/ajax/libs/codex-icons/2.3.2/
 // See https://doc.wikimedia.org/codex/latest/icons/all-icons.html
+//
+// TODO: When CDNjs refreshes (CDNjs PR #2174 merged), the CDN will have UMD builds.
+// Then replace this file with:
+//   <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/codex/2.3.2/codex.umd.min.js">
+//   <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/codex-icons/2.3.2/codex-icons.umd.min.js">
+// Map window.codexIcons to window.CropToolCodexIcons and remove this file.
 
 // Icon SVG paths keyed by local name
 window.CropToolCodexIcons = {
