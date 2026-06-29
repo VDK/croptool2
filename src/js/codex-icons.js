@@ -1,5 +1,10 @@
 'use strict';
 
+// Icon data derived from @wikimedia/codex-icons (Wikimedia Codex design system)
+// Available on Toolforge CDN: //tools-static.wmflabs.org/cdnjs/ajax/libs/codex/2.3.2/codex.min.js
+// See https://doc.wikimedia.org/codex/latest/icons/all-icons.html
+
+// Icon SVG paths keyed by local name
 window.CropToolCodexIcons = {
     'user-anonymous': '<path d="M13.5 13.5a2.5 2.5 0 11-2.29 3.5H8.79A2.499 2.499 0 014 16a2.5 2.5 0 014.79-1h2.42a2.5 2.5 0 012.29-1.5M15 7.086l3.207 3.207L17.5 12h-15l-.707-1.707L5 7.086V2h10zm-8 .828L4.914 10h10.172L13 7.914V4H7z"/>',
     'user-active': '<path d="M12 11a6 6 0 016 6v2H2v-2a6 6 0 016-6zM10 1a4 4 0 110 8 4 4 0 010-8"/>',
