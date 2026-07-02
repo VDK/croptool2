@@ -91,7 +91,7 @@ controller('LoginCtrl', ['$scope', '$http', '$httpParamSerializer', 'LoginServic
     $scope.logout = function() {
         $http.get('./api/auth/logout')
         .then(function(response) {
-            LoginService.checkLogin(response.data);
+            LoginService.checkLogin(response);
             $scope.user = LoginService.user;
         });
     };
