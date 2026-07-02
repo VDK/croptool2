@@ -1,7 +1,7 @@
 'use strict';
 
 // Declare app level module which depends on filters, and services
-angular.module('croptool', ['LocalStorageModule', 'ngSanitize', 'ui.bootstrap', 'angular-ladda', 'pascalprecht.translate','ngTouch']).
+angular.module('croptool', ['LocalStorageModule', 'ngSanitize', 'ui.bootstrap', 'angular-ladda', 'pascalprecht.translate',]).
 
 config(['$translateProvider', function($translateProvider) {
     $translateProvider.useSanitizeValueStrategy('escapeParameters');
@@ -1261,7 +1261,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
 
         params.title = params.title
             .replace(/_/g, ' ')
-            .replace(/^[^:]+:/, '');  // Strip off File:, Fil:, etc.
+            .replace(/^[^:]+:/);  // Strip off File:, Fil:, etc.
 
         if (params.title.match(/\.(pdf|djvu|tiff?)$/) && !params.page) {
             params.page = 1;
@@ -1495,7 +1495,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         function fallbackCopy() {
             textarea = $window.document.createElement('textarea');
             textarea.value = value;
-            textarea.setAttribute('readonly', '');
+            textarea.setAttribute('readonly');
             textarea.style.position = 'fixed';
             textarea.style.opacity = '0';
             $window.document.body.appendChild(textarea);
