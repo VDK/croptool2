@@ -1,6 +1,6 @@
 {
-  "name": "croptool",
-  "version": "1.0.0",
+  "name": "croptool2",
+  "version": "2.0.0",
   "description": "Tool for cropping images at Wikimedia Commons and other Wikimedia wikis.",
   "main": "public_html/app.js",
   "directories": {
@@ -33,12 +33,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/danmichaelo/croptool.git"
+    "url": "git+https://github.com/wpmed/croptool2.git"
   },
   "author": "Dan Michael O. Heggø",
-  "license": "MIT",
+  "license": "GPL-2.0+",
   "bugs": {
-    "url": "https://github.com/danmichaelo/croptool/issues"
+    "url": "https://github.com/wpmed/croptool2/issues"
   },
-  "homepage": "https://github.com/danmichaelo/croptool#readme"
+  "homepage": "https://github.com/wpmed/croptool2#readme"
 }

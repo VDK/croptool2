@@ -84,9 +84,9 @@ Note that you should be able to login and preview cropping without waiting for t
 * `ssh tools-login.wmflabs.org`
 * `become croptool`
 * `toolforge build start https://github.com/wpmed/croptool2`
-* `toolforge webservice`
+* `toolforge webservice restart`
 
-Note that `toolforge webservice` uses the service.template file to determine its options.
+Note that `toolforge webservice restart` uses the service.template file to determine its options.
 
 First-time setup:
 

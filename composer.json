@@ -1,5 +1,5 @@
 {
-    "name": "danmichaelo/croptool",
+    "name": "wpmed/croptool2",
     "description": "Tool for cropping images at Wikimedia sites",
     "require": {
         "php": "~8.2",
@@ -28,11 +28,17 @@
     "autoload-dev": {
         "psr-0": { "": "tests/integration" }
     },
-    "license": "MIT",
+    "license": "GPL-2.0+",
     "authors": [
         {
             "name": "Dan Michael O. Heggø",
             "email": "danmichaelo@gmail.com"
+        },
+        {
+            "name": "Brian Wolff",
+        },
+        {
+            "name": "Vera de Kok",
         }
     ]
 }
