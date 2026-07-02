@@ -1,13 +1,11 @@
 'use strict';
 
-// Icon data derived from @wikimedia/codex-icons (Wikimedia Codex design system)
-// Available on Toolforge CDN: //tools-static.wmflabs.org/cdnjs/ajax/libs/codex/2.3.2/codex.min.js
-// Icon files: //tools-static.wmflabs.org/cdnjs/ajax/libs/codex-icons/2.3.2/
+// Icon data from @wikimedia/codex-icons, part of the Wikimedia Codex design system
+// Licensed under GPL-2.0: https://github.com/wikimedia/design-codex/blob/main/LICENSE
 // See https://doc.wikimedia.org/codex/latest/icons/all-icons.html
 //
-// TODO: When CDNjs refreshes (CDNjs PR #2174 merged), the CDN will have UMD builds.
-// Then replace this file with:
-//   <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/codex/2.3.2/codex.umd.min.js">
+// TODO: When CDNjs picks up the UMD build (packages/pull/2174),
+// switch to loading directly from CDN:
 //   <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/codex-icons/2.3.2/codex-icons.umd.min.js">
 // Map window.codexIcons to window.CropToolCodexIcons and remove this file.
 
