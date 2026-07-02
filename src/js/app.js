@@ -348,9 +348,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         { code: 'fr', label: 'Francais' },
         { code: 'de', label: 'Deutsch' },
         { code: 'es', label: 'Espanol' },
-        { code: 'zh', label: '中文' },
-        { code: 'ar', label: 'العربية' },
-        { code: 'he', label: 'עברית' }
+        { code: 'zh', label: '中文' }
     ];
     var storedLanguage = LocalStorageService.get('croptool-language');
     var urlLanguage = (getParameterByName('uselang') || getParameterByName('lang') || '').toLowerCase();
