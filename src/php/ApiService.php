@@ -79,7 +79,13 @@ class ApiService
 
         $data = json_decode($data);
         if (isset($data->error)) {
-            throw new ApiError('[api] Received error: ' . $data->error->code . ' : ' . $data->error->info);
+            // TODO better solution for this
+            $info = str_replace(
+                "⧼abusefilter-warning-file-overwriting⧽",
+                "A file with this name already exists. You are only allowed to upload new versions of files you yourself uploaded. Please choose a different file name. See [[COM:OVERWRITE]] for details.",
+                (string)$data->error->info
+            );
+            throw new ApiError('[api] Received error: ' . $data->error->code . ' : ' . $info);
         }
 
         return $data;
