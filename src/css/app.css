@@ -481,9 +481,12 @@ label {
     width: 100%;
     box-sizing: border-box;
     border: 1px solid #a2a9b1;
-    border-right: 0;
+    border-inline-end: 0;
     background: #f8f9fa;
-    border-radius: 2px 0 0 2px;
+    border-start-start-radius: 2px;
+    border-end-start-radius: 2px;
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
     font-family: inherit;
     height: 32px;
     padding: 5px 8px;
@@ -506,7 +509,10 @@ label {
     box-sizing: border-box;
     border: 1px solid #a2a9b1;
     background: #f8f9fa;
-    border-radius: 0 2px 2px 0;
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    border-start-end-radius: 2px;
+    border-end-end-radius: 2px;
     color: #202122;
     cursor: pointer;
     font-size: 13px;
@@ -514,16 +520,6 @@ label {
 
 .upload-result-copy-button:hover {
     background: #fff;
-}
-
-[dir="rtl"] .upload-result-copy-input {
-    border-right: 1px solid #a2a9b1;
-    border-left: 0;
-    border-radius: 0 2px 2px 0;
-}
-
-[dir="rtl"] .upload-result-copy-button {
-    border-radius: 2px 0 0 2px;
 }
 
 .rightcol {
@@ -675,6 +671,10 @@ label {
     text-align: right;
     appearance: textfield;
     -moz-appearance: textfield;
+    border-start-start-radius: 4px;
+    border-end-start-radius: 4px;
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
 }
 
 .straighten-angle-input .form-control::-webkit-inner-spin-button,
@@ -690,7 +690,7 @@ label {
     height: 34px;
     min-height: 34px;
     border: 1px solid #ccc;
-    border-left: 0;
+    border-inline-start: 0;
     vertical-align: middle;
 }
 
@@ -732,6 +732,14 @@ label {
     border-top: 1px solid #ccc;
 }
 
+.straighten-angle-input .input-group-btn:last-child > .btn,
+.filter-value-input .input-group-btn:last-child > .btn {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    border-start-end-radius: 4px;
+    border-end-end-radius: 4px;
+}
+
 .straighten-angle-input .input-group-addon {
     box-sizing: border-box;
     height: 34px;
@@ -760,7 +768,7 @@ label {
     min-width: 32px;
     height: 34px;
     min-height: 34px;
-    margin-left: -1px;
+    margin-inline-start: -1px;
     padding-left: 5px;
     padding-right: 5px;
     border-radius: 0;
@@ -796,15 +804,15 @@ label {
 }
 
 .value-action-group .value-action-btn:last-child {
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
+    border-start-end-radius: 4px;
+    border-end-end-radius: 4px;
 }
 
 .value-action-group .input-group .input-group-addon:last-child,
 .value-action-group .input-group .value-stepper:last-child,
 .value-action-group .input-group .straighten-stepper:last-child {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
 }
 
 .orientation-control .btn[disabled] {
@@ -1264,15 +1272,18 @@ form {
     flex: 0 0 22px;
     box-sizing: border-box;
     height: 34px;
-    margin-left: -1px;
+    margin-inline-start: -1px;
     border: 1px solid #ccc;
-    border-left: 0;
-    border-radius: 0 4px 4px 0;
+    border-inline-start: 0;
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    border-start-end-radius: 4px;
+    border-end-end-radius: 4px;
 }
 
 .cropdim-input-control:focus-within input {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
 }
 
 .cropdim-input-control:focus-within .cropdim-stepper {
@@ -1345,6 +1356,10 @@ form {
   text-align: right;
   appearance: textfield;
   -moz-appearance: textfield;
+  border-start-start-radius: 4px;
+  border-end-start-radius: 4px;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
 }
 
 .filter-value-input .form-control::-webkit-inner-spin-button,
@@ -1360,7 +1375,7 @@ form {
   height: 34px;
   min-height: 34px;
   border: 1px solid #ccc;
-  border-left: 0;
+  border-inline-start: 0;
   vertical-align: middle;
 }
 
@@ -1460,16 +1475,19 @@ form {
   flex: 0 0 18px;
   box-sizing: border-box;
   height: 34px;
-  margin-left: -1px;
+  margin-inline-start: -1px;
   border: 1px solid #ccc;
-  border-left: 0;
-  border-radius: 0 4px 4px 0;
+  border-inline-start: 0;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  border-start-end-radius: 4px;
+  border-end-end-radius: 4px;
 }
 
 .ratio-number-control:focus-within input {
   width: 33px;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
 }
 
 .ratio-number-control:focus-within .ratio-stepper {
@@ -1867,83 +1885,3 @@ html .cropper-face {
     padding-left: 0;
 }
 
-/* RTL: flip border-radius on input + action groups */
-[dir="rtl"] .value-action-btn {
-    margin-left: 0;
-    margin-right: -1px;
-}
-
-[dir="rtl"] .value-stepper,
-[dir="rtl"] .straighten-stepper {
-    border-left: 1px solid #ccc;
-    border-right: 0;
-}
-
-/* RTL: override Bootstrap 3 input-group border-radius (DOM-order based, wrong in RTL) */
-[dir="rtl"] .straighten-angle-input .form-control,
-[dir="rtl"] .filter-value-input .form-control {
-    border-radius: 0 4px 4px 0;
-}
-
-[dir="rtl"] .straighten-angle-input .straighten-stepper .btn,
-[dir="rtl"] .filter-value-input .value-stepper .btn {
-    border-radius: 0;
-}
-
-[dir="rtl"] .straighten-angle-input .input-group-btn:last-child > .btn,
-[dir="rtl"] .filter-value-input .input-group-btn:last-child > .btn {
-    border-radius: 4px 0 0 4px;
-}
-
-[dir="rtl"] .upload-result-copy-input {
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-}
-
-[dir="rtl"] .value-action-group .value-action-btn:last-child {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-}
-
-[dir="rtl"] .value-action-group .input-group .input-group-addon:last-child,
-[dir="rtl"] .value-action-group .input-group .value-stepper:last-child,
-[dir="rtl"] .value-action-group .input-group .straighten-stepper:last-child {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-}
-
-[dir="rtl"] .cropdim-stepper {
-    margin-left: 0;
-    margin-right: -1px;
-    border-left: 1px solid #ccc;
-    border-right: 0;
-    border-radius: 4px 0 0 4px;
-}
-
-[dir="rtl"] .cropdim-input-control:focus-within input {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-}
-
-[dir="rtl"] .ratio-stepper {
-    margin-left: 0;
-    margin-right: -1px;
-    border-left: 1px solid #ccc;
-    border-right: 0;
-    border-radius: 4px 0 0 4px;
-}
-
-[dir="rtl"] .ratio-number-control:focus-within input {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-}
