@@ -1428,6 +1428,9 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
                     $scope.newTitle :
                     $scope.currentUrlParams.title;
                 $scope.uploadResultUrl = response.imageinfo.descriptionurl;
+                $scope.uploadResultWikiText = '[[File:' + ($scope.overwrite == 'rename' ?
+                    $scope.newTitle :
+                    $scope.currentUrlParams.title) + '|thumb]]';
                 $scope.uploadResultCopied = '';
 
             } else if (response.result == 'Warning') {

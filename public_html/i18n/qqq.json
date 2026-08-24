@@ -113,6 +113,7 @@
 	"results-copy-url": "Label for the file URL copy field in the upload result card.",
 	"results-copy": "Button label for copying a value (filename or URL) to the clipboard in the upload result card.",
 	"results-copied": "Button label shown briefly after a value has been successfully copied to the clipboard.",
+	"results-copy-wikitext": "Label for the wikitext embed copy field shown in the upload result card.",
 	"results-copy-success": "Screen-reader live-region announcement confirming that a value was copied to the clipboard.",
 	"results-success-wikidata": "Info note shown after a successful upload when the image was also added to a Wikidata item. Uses the named parameter {{link}}, which is an HTML link to the Wikidata item.",
 	"results-failure": "Error message shown when the upload fails. Uses the named parameter {{error}}, which is the error message returned by the MediaWiki API."

@@ -300,6 +300,17 @@ window.CropToolAssetVersion = 'dev';
                             </span>
                         </div>
                         <div class="upload-result-copy-field">
+                            <label class="upload-result-copy-label" for="uploadResultWikiText" translate>results-copy-wikitext</label>
+                            <span class="upload-result-copy-control">
+                                <input id="uploadResultWikiText" class="upload-result-copy-input monospace" type="text" readonly value="{{uploadResultWikiText}}" ng-click="$event.target.select()">
+                                <button class="upload-result-copy-button" type="button" ng-click="copyUploadResult(uploadResultWikiText, 'wikitext')" ng-disabled="!uploadResultWikiText">
+                                    <span ct-icon="{{uploadResultCopied == 'wikitext' ? 'check' : 'copy'}}"></span>
+                                    <span ng-if="uploadResultCopied != 'wikitext'" translate>results-copy</span>
+                                    <span ng-if="uploadResultCopied == 'wikitext'" translate>results-copied</span>
+                                </button>
+                            </span>
+                        </div>
+                        <div class="upload-result-copy-field">
                             <label class="upload-result-copy-label" for="uploadResultUrl" translate>results-copy-url</label>
                             <span class="upload-result-copy-control">
                                 <input id="uploadResultUrl" class="upload-result-copy-input" type="text" readonly value="{{uploadResultUrl}}" ng-click="$event.target.select()">
