@@ -673,7 +673,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         if ($scope.preRotationCropmethod) {
             $scope.cropmethod = $scope.preRotationCropmethod;
         }
-        $scope.rotation = {angle: 0, rightAngle: 0, straightenAngle: 0};
+        $scope.rotation = {angle: 0, rightAngle: 0, straightenAngle: 0, straightenAngleText: '0'};
         $scope.preRotationCropmethod = null;
         $scope.filters = {brightness: 0, contrast: 0, saturation: 0};
         $scope.filterPreviewEnabled = true;
@@ -888,12 +888,37 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         return clampStraightenAngle(isNaN(angle) ? 0 : angle);
     }
 
+    // The straighten box is a text input so that typing decimals (e.g. "4.25")
+    // works: an <input type="number"> re-parses and rewrites partial values like
+    // "4." on every keystroke, swallowing the decimal separator. The text is
+    // parsed/clamped here and only reformatted on blur.
+    $scope.straightenTextFocus = false;
+
+    function formatStraightenAngle(angle) {
+        return String(Math.round(angle * 100) / 100);
+    }
+
+    function parseStraightenText(text) {
+        if (text === null || text === undefined) {
+            return NaN;
+        }
+        text = String(text).trim().replace(',', '.');
+        if (text === '' || text === '-' || text === '.' || text === '-.') {
+            return NaN;
+        }
+        var value = Number(text);
+        return isFinite(value) ? value : NaN;
+    }
+
     function updateRotationAngle() {
         $scope.rotation.rightAngle = normalizedRightRotation();
         $scope.rotation.straightenAngle = straightenAngle();
         $scope.rotation.angle = $scope.rotation.rightAngle + $scope.rotation.straightenAngle;
         if ($scope.crop_dim) {
             $scope.crop_dim.rotate = $scope.rotation.angle;
+        }
+        if (!$scope.straightenTextFocus) {
+            $scope.rotation.straightenAngleText = formatStraightenAngle($scope.rotation.straightenAngle);
         }
         applyRotationCropMethodLock();
     }
@@ -990,6 +1015,29 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
     };
 
     $scope.straightenChanged = function() {
+        updateRotationAngle();
+    };
+
+    $scope.onStraightenTextFocus = function() {
+        $scope.straightenTextFocus = true;
+    };
+
+    $scope.straightenTextChanged = function() {
+        var value = parseStraightenText($scope.rotation && $scope.rotation.straightenAngleText);
+        if (isNaN(value)) {
+            // Partial input such as "4." or "-"; keep the current angle and let
+            // the user finish typing. The value is normalized on blur.
+            return;
+        }
+        $scope.rotation.straightenAngle = clampStraightenAngle(value);
+        updateRotationAngle();
+    };
+
+    $scope.straightenTextBlur = function() {
+        $scope.straightenTextFocus = false;
+        var value = parseStraightenText($scope.rotation && $scope.rotation.straightenAngleText);
+        var angle = isNaN(value) ? straightenAngle() : clampStraightenAngle(value);
+        $scope.rotation.straightenAngle = angle;
         updateRotationAngle();
     };
 
@@ -1605,7 +1653,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
     $scope.aspectratio_cy = LocalStorageService.get('croptool-aspectratio-y') || '9';;
     $scope.aspectratio_value = parseFloat(LocalStorageService.get('croptool-aspectratio-value')) || null;
     $scope.overwrite = 'rename';
-    $scope.rotation = {angle: 0, rightAngle: 0, straightenAngle: 0};
+    $scope.rotation = {angle: 0, rightAngle: 0, straightenAngle: 0, straightenAngleText: '0'};
     $scope.preRotationCropmethod = null;
     $scope.filters = {brightness: 0, contrast: 0, saturation: 0};
     $scope.filterPreviewEnabled = true;
