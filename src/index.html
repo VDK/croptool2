@@ -416,10 +416,10 @@ window.CropToolAssetVersion = 'dev';
                                 <label id="straightenLabel" for="straightenInput" translate>cropform-straighten</label>
                             </div>
                             <div class="straighten-control-row">
-                                <input class="straighten-angle-slider" type="range" min="-15" max="15" step="0.1" ng-model="rotation.straightenAngle" ng-change="straightenChanged()" aria-labelledby="straightenLabel">
+                                <input class="straighten-angle-slider" type="range" min="-90" max="90" step="0.1" ng-model="rotation.straightenAngle" ng-change="straightenChanged()" aria-labelledby="straightenLabel">
                                 <div class="value-action-group">
                                     <div class="input-group straighten-angle-input">
-                                        <input id="straightenInput" class="form-control" type="number" min="-15" max="15" step="0.1" ng-model="rotation.straightenAngle" ng-change="straightenChanged()" ng-mouseup="stopStep()" ng-mouseleave="stopStep()" aria-label="{{'cropform-straighten' | translate}}">
+                                        <input id="straightenInput" class="form-control" type="number" min="-90" max="90" step="0.1" ng-model="rotation.straightenAngle" ng-change="straightenChanged()" ng-mouseup="stopStep()" ng-mouseleave="stopStep()" aria-label="{{'cropform-straighten' | translate}}">
                                         <span class="input-group-btn straighten-stepper">
                                             <button type="button" class="btn btn-default" ng-mousedown="startStraightenStep(0.1)" title="{{'cropform-straighten-increase' | translate}}" ng-mouseup="stopStep()" ng-mouseleave="stopStep()" aria-label="{{'cropform-straighten-increase' | translate}}">
                                                 <span class="straighten-stepper-arrow straighten-stepper-arrow-up" aria-hidden="true"></span>

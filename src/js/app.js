@@ -877,9 +877,15 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         return angle % 360;
     }
 
+    var MAX_STRAIGHTEN_ANGLE = 90;
+
+    function clampStraightenAngle(angle) {
+        return Math.max(-MAX_STRAIGHTEN_ANGLE, Math.min(MAX_STRAIGHTEN_ANGLE, angle));
+    }
+
     function straightenAngle() {
         var angle = parseFloat($scope.rotation && $scope.rotation.straightenAngle);
-        return isNaN(angle) ? 0 : angle;
+        return clampStraightenAngle(isNaN(angle) ? 0 : angle);
     }
 
     function updateRotationAngle() {
@@ -1075,7 +1081,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
 
     $scope.stepStraighten = function(step) {
         var angle = Math.round((straightenAngle() + step) * 10) / 10;
-        $scope.rotation.straightenAngle = Math.max(-15, Math.min(15, angle));
+        $scope.rotation.straightenAngle = clampStraightenAngle(angle);
         updateRotationAngle();
     };
 
