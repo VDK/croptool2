@@ -1080,7 +1080,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
     };
 
     $scope.stepStraighten = function(step) {
-        var angle = Math.round((straightenAngle() + step) * 10) / 10;
+        var angle = Math.round((straightenAngle() + step) * 100) / 100;
         $scope.rotation.straightenAngle = clampStraightenAngle(angle);
         updateRotationAngle();
     };
