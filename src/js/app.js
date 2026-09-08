@@ -1127,6 +1127,16 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         $scope.onCropDimChange(dimension);
     };
 
+    $scope.cropDimKeydown = function(dimension, $event) {
+        var direction = $event.key === 'ArrowUp' ? 1 : ($event.key === 'ArrowDown' ? -1 : 0);
+        if (direction === 0) {
+            return;
+        }
+        // Prevent the native number-input stepping so only one step is applied.
+        $event.preventDefault();
+        $scope.stepCropDimension(dimension, direction);
+    };
+
     var STRAIGHTEN_STEP = 0.01;
 
     $scope.stepStraighten = function(step) {

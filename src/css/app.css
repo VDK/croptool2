@@ -1268,7 +1268,7 @@ form {
 }
 
 .cropdim-stepper {
-    display: none;
+    display: block;
     flex: 0 0 22px;
     box-sizing: border-box;
     height: 34px;
@@ -1281,13 +1281,9 @@ form {
     border-end-end-radius: 4px;
 }
 
-.cropdim-input-control:focus-within input {
+.cropdim .cropdim-input-control input {
     border-start-end-radius: 0;
     border-end-end-radius: 0;
-}
-
-.cropdim-input-control:focus-within .cropdim-stepper {
-    display: block;
 }
 
 .cropdim-stepper button {
