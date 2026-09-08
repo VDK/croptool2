@@ -1127,10 +1127,27 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         $scope.onCropDimChange(dimension);
     };
 
+    var STRAIGHTEN_STEP = 0.01;
+
     $scope.stepStraighten = function(step) {
         var angle = Math.round((straightenAngle() + step) * 100) / 100;
         $scope.rotation.straightenAngle = clampStraightenAngle(angle);
         updateRotationAngle();
+    };
+
+    $scope.straightenKeydown = function($event) {
+        var step = $event.key === 'ArrowUp' ? STRAIGHTEN_STEP
+            : ($event.key === 'ArrowDown' ? -STRAIGHTEN_STEP : 0);
+        if (step === 0) {
+            return;
+        }
+        $event.preventDefault();
+        $scope.stepStraighten(step);
+        // stepStraighten leaves the text untouched while the field is focused,
+        // so update the box here to keep it in sync with the arrow keys.
+        if ($scope.rotation) {
+            $scope.rotation.straightenAngleText = formatStraightenAngle($scope.rotation.straightenAngle);
+        }
     };
 
     $scope.resetStraighten = function() {
