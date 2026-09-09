@@ -153,10 +153,27 @@ class FileController
         $crop = $original->crop($destPath, $cropMethod, $x, $y, $width, $height, $rotation, $brightness, $contrast, $saturation);
         $thumb = $crop->thumb($thumbPath);
 
+        // A TIFF whose original carried an embedded preview/thumbnail subfile
+        // keeps one in the crop (downscaled to the same resolution tier), so
+        // MediaWiki can keep rendering thumbnails from the subfile instead of
+        // decoding a still-huge main scan.
+        if ($page->file instanceof \CropTool\File\TiffFile) {
+            $page->file->embedThumbnailIntoCrop($destPath);
+        }
+
         $logger->info('[{sha1}] Cropped using {method} mode', [
             'sha1' => $page->file->getShortSha1(),
             'method' => $cropMethod,
         ]);
+
+        // Real (IFD-verified) page count. It ignores embedded
+        // thumbnail/preview subfiles, so a TIFF whose only "extra page" is a
+        // scanner preview reports 1 here; the frontend uses this to decide
+        // whether overwriting the original with the crop is allowed.
+        $realPageCount = $page->file->getPageCount();
+        if (!$realPageCount) {
+            $realPageCount = $page->imageinfo->pagecount;
+        }
 
         $dim = array();
         if ( $pageno > 0 ) {
@@ -208,6 +225,7 @@ class FileController
             'site' => $page->site,
             'title' => $page->title,
             'pageno' => $pageno,
+            'realPagecount' => $realPageCount,
             'method' => $cropMethod,
             'dim' => implode(', ', $dim) . ' using [[Commons:CropTool|CropTool2]] with ' . $cropMethod . ' mode.',
             'page' => [

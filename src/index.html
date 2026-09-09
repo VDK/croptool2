@@ -683,8 +683,8 @@ window.CropToolAssetVersion = 'dev';
                                     <span translate>previewform-create-new</span>
                                 </label>
                                 <label class="radio-inline"
-                                    ng-class="{selected: overwrite == 'overwrite', disabled: ladda2 || currentUrlParams.page || cropresults.page.hasAssessmentTemplates || cropresults.page.hasDoNotCropTemplate || cropresults.page.hasUploadProtection}">
-                                    <input type="radio" name="overwrite" ng-disabled="ladda2 || currentUrlParams.page || cropresults.page.hasAssessmentTemplates || cropresults.page.hasDoNotCropTemplate || cropresults.page.hasUploadProtection" ng-model="overwrite" value="overwrite" ng-change="updateUploadComment()">
+                                    ng-class="{selected: overwrite == 'overwrite', disabled: ladda2 || (cropresults.realPagecount || 0) > 1 || cropresults.page.hasAssessmentTemplates || cropresults.page.hasDoNotCropTemplate || cropresults.page.hasUploadProtection}">
+                                    <input type="radio" name="overwrite" ng-disabled="ladda2 || (cropresults.realPagecount || 0) > 1 || cropresults.page.hasAssessmentTemplates || cropresults.page.hasDoNotCropTemplate || cropresults.page.hasUploadProtection" ng-model="overwrite" value="overwrite" ng-change="updateUploadComment()">
                                     <span translate>previewform-overwrite</span>
                                 </label>
                                 </div>
