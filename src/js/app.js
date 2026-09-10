@@ -1676,6 +1676,21 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$interval', '$q', '$windo
         return $scope.currentUrlParams.site + ':' + $scope.newTitle;
     }
 
+    // Overwriting the original is only possible for single-page results of
+    // files that must not be replaced. realPagecount is the IFD/page count the
+    // backend verified, so a TIFF whose only extra "page" is an embedded
+    // preview counts as single-page.
+    $scope.overwriteDisabled = function() {
+        if (!$scope.cropresults) {
+            return true;
+        }
+        var page = $scope.cropresults.page || {};
+        return ($scope.cropresults.realPagecount || 0) > 1 ||
+            !!page.hasAssessmentTemplates ||
+            !!page.hasDoNotCropTemplate ||
+            !!page.hasUploadProtection;
+    };
+
     $scope.uploadBlockedByFilenameConflict = function() {
         return $scope.overwrite == 'rename' && $scope.exists[newTitleExistsKey()] === true && !$scope.confirmOverwrite;
     };
