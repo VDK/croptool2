@@ -1904,4 +1904,12 @@ html .cropper-face {
   font-size: 0.9em;
   color: #54595d;
 }
+/* Download progress on the "fetching image data" screen: the same bar as the
+   upload progress, but as tall as the indeterminate loader it replaces. */
+.ct-download-progress {
+  margin: 1em 0 0.6em;
+}
+.ct-download-progress .ct-upload-progress-bar {
+  height: 6px;
+}
 

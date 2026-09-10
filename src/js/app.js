@@ -678,13 +678,18 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$interval', '$q', '$windo
         $scope.filters = {brightness: 0, contrast: 0, saturation: 0};
         $scope.filterPreviewEnabled = true;
 
+        var progressToken = makeId();
+        startDownloadProgressPoll(progressToken);
+
         $http.get('./api/file/info?' + $httpParamSerializer({
             title: $scope.currentUrlParams.title,
             site: $scope.currentUrlParams.site,
             page: $scope.currentUrlParams.page,
+            progress: progressToken,
         }))
         .then(function(res) {
 
+            stopDownloadProgressPoll();
             $scope.busy = false;
 
             var response = res.data;
@@ -805,6 +810,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$interval', '$q', '$windo
             }
 
         }, function(res) {
+            stopDownloadProgressPoll();
             $scope.metadata = null;
             $scope.error = responseError(res.data);
             $scope.busy = false;
@@ -1439,6 +1445,61 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$interval', '$q', '$windo
         }
         return hex;
     }
+
+    function stopDownloadProgressPoll() {
+        if ($scope.downloadProgressDelay) {
+            $timeout.cancel($scope.downloadProgressDelay);
+            $scope.downloadProgressDelay = null;
+        }
+        if ($scope.downloadProgressTimer) {
+            $interval.cancel($scope.downloadProgressTimer);
+            $scope.downloadProgressTimer = null;
+        }
+    }
+
+    // The /info request downloads the original, which for a very large scan
+    // can take minutes. Poll the download status so the loading screen can
+    // show a real progress bar instead of only a spinner. Polling only starts
+    // after a short delay: cached/small files load well before that, so they
+    // never touch the endpoint.
+    function startDownloadProgressPoll(token) {
+        stopDownloadProgressPoll();
+        $scope.downloadProgress = { uploaded: 0, filesize: 0 };
+        $scope.downloadProgressDelay = $timeout(function() {
+            $scope.downloadProgressDelay = null;
+            $scope.downloadProgressTimer = $interval(function() {
+                $http.get('./api/download-progress', { params: { token: token } }).then(function(res) {
+                    var p = res.data || {};
+                    $scope.downloadProgress.uploaded = Number(p.uploaded) || 0;
+                    $scope.downloadProgress.filesize = Number(p.filesize) || 0;
+                });
+            }, 500);
+        }, 400);
+    }
+
+    $scope.downloadProgressPercent = function() {
+        var p = $scope.downloadProgress;
+        if (!p || !p.filesize) {
+            return 0;
+        }
+        return Math.max(0, Math.min(100, Math.round(p.uploaded / p.filesize * 100)));
+    };
+
+    $scope.downloadProgressIndeterminate = function() {
+        var p = $scope.downloadProgress;
+        return !p || !p.filesize;
+    };
+
+    $scope.downloadProgressText = function() {
+        var p = $scope.downloadProgress;
+        if (!p || !p.filesize) {
+            return '';
+        }
+        var mb = function(bytes) {
+            return Math.round(bytes / 1048576);
+        };
+        return mb(p.uploaded) + ' / ' + mb(p.filesize) + ' MB';
+    };
 
     function stopUploadProgressPoll() {
         if ($scope.uploadProgressTimer) {

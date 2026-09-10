@@ -190,7 +190,19 @@ window.CropToolAssetVersion = 'dev';
 
         <p translate>fetching-progress</p>
 
-        <div class="mainLoader" style="margin-top: 1em;"></div>
+        <!-- Indeterminate while the original is still being requested or
+             cached; a real progress bar once the download has a known size. -->
+        <div class="mainLoader" style="margin-top: 1em;" ng-hide="!downloadProgressIndeterminate()"></div>
+
+        <div class="ct-upload-progress ct-download-progress" ng-show="!downloadProgressIndeterminate()">
+            <div class="ct-upload-progress-bar">
+                <div class="ct-upload-progress-fill" ng-style="{width: downloadProgressPercent() + '%'}"></div>
+            </div>
+            <div class="ct-upload-progress-label">
+                <span translate>download-progress-label</span>: {{ downloadProgressPercent() }}%
+                <span ng-show="downloadProgressText()">({{ downloadProgressText() }})</span>
+            </div>
+        </div>
 
     </div>
 
