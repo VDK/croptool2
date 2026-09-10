@@ -65,6 +65,15 @@ class FileController
 
         $page->assertExists();
         $page->assertNotWaitingForLicenseReview();
+
+        // fetchPage() downloads the original and extracts the page. For very
+        // large files that takes a while, so report progress into a status
+        // file the frontend polls (see /api/download-progress).
+        $progressFile = $this->progressFile($request->getQueryParams()['progress'] ?? null);
+        if ($progressFile) {
+            @unlink($progressFile);
+            $page->file->setProgressFile($progressFile);
+        }
         $page->file->fetchPage($pageno);
 
         $thumbPath = $page->file->getAbsolutePathForPage($pageno, '_thumb');
@@ -92,6 +101,12 @@ class FileController
             'supportsFilters' => $page->file->supportsFilters(),
             'overrideResultExtension' => $page->file->overrideResultExtension()
         ]));
+
+        // The download status file is kept until now so the frontend can show
+        // 100% while the page is still being extracted/thumbnailed.
+        if ($progressFile) {
+            @unlink($progressFile);
+        }
 
         return $response;
     }
@@ -275,7 +290,7 @@ class FileController
         $metadata = array_get($body, 'metadata', []);
         $ignoreWarnings = boolval(array_get($body, 'ignorewarnings', false));
         $newName = array_get($body, 'filename');
-        $progressFile = $this->uploadProgressFile(array_get($body, 'progress'));
+        $progressFile = $this->progressFile(array_get($body, 'progress'));
 
         $page->assertExists();
         $cropPath = $page->file->getAbsolutePathForPage($pageno, '_cropped');
@@ -385,15 +400,16 @@ class FileController
     }
 
     /**
-     * Path of the JSON status file that the frontend polls while the upload
-     * is running (see /api/upload-progress). Returns null when no (valid)
-     * progress token was supplied, i.e. the upload was not started from the
+     * Path of the JSON status file that the frontend polls while a large
+     * original is downloaded (see /api/download-progress) or an upload is
+     * running (see /api/upload-progress). Returns null when no (valid)
+     * progress token was supplied, i.e. the request was not started from the
      * web UI.
      *
      * @param mixed $token
      * @return string|null
      */
-    protected function uploadProgressFile($token)
+    protected function progressFile($token)
     {
         if (!is_string($token) || !preg_match('/^[a-f0-9]{16,64}$/', $token)) {
             return null;

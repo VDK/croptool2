@@ -23,6 +23,10 @@ class File implements FileInterface
     protected $pathToGs;
     protected $pathToConvert;
 
+    /** @var string|null JSON status file polled by the UI during fetch(). */
+    protected $progressFile;
+    protected $lastProgressWrite = 0.0;
+
 
     protected $supportedMimeTypes = [
         'image/jpeg' => '.jpg',
@@ -46,6 +50,34 @@ class File implements FileInterface
         $this->pathToConvert = $config->get('convertPath', 'convert');
 
         $this->fileExt = $this->getFileExt($this->mime);
+    }
+
+    /**
+     * Report download progress into a JSON status file that the frontend
+     * polls while a large original is being fetched.
+     */
+    public function setProgressFile($path)
+    {
+        $this->progressFile = $path;
+    }
+
+    protected function writeDownloadProgress($downloaded, $total)
+    {
+        if (!$this->progressFile) {
+            return;
+        }
+        $now = microtime(true);
+        $finished = $total > 0 && $downloaded >= $total;
+        // Throttle: a progress callback fires constantly, and the file is
+        // only polled a few times per second.
+        if (!$finished && ($now - $this->lastProgressWrite) < 0.4) {
+            return;
+        }
+        $this->lastProgressWrite = $now;
+        @file_put_contents($this->progressFile, (string)json_encode([
+            'uploaded' => (int)$downloaded,
+            'filesize' => (int)$total,
+        ]));
     }
 
     public function getPublicDir()
@@ -152,6 +184,19 @@ class File implements FileInterface
             }
         );
 
+        if ($this->progressFile) {
+            $this->writeDownloadProgress(0, max($contentLength, 0));
+            curl_setopt($ch, CURLOPT_NOPROGRESS, false);
+            curl_setopt($ch, CURLOPT_XFERINFOFUNCTION,
+                function ($curl, $dltotal, $dlnow) use (&$contentLength) {
+                    // curl reports -1 until it knows the totals.
+                    $total = $dltotal > 0 ? $dltotal : max($contentLength, 0);
+                    $this->writeDownloadProgress($dlnow, $total);
+                    return 0;
+                }
+            );
+        }
+
         // Download file
         $ok = curl_exec($ch);
         $curlError = $ok === false ? curl_error($ch) : null;
@@ -161,6 +206,10 @@ class File implements FileInterface
         fclose($fp);
 
         $fsize = filesize($path);
+
+        if ($this->progressFile) {
+            $this->writeDownloadProgress($fsize, $contentLength > 0 ? $contentLength : $fsize);
+        }
 
         $this->logMsg("Fetched {$fsize} of {$contentLength} bytes from {$this->url}");
 
