@@ -1086,13 +1086,17 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         $scope.stepFilter(filter, baseStep);
     };
 
+    function straightenOnce(baseStep) {
+        $scope.stepStraighten(stepAccel ? baseStep * stepAccel : baseStep);
+    }
+
     $scope.startStraightenStep = function(baseStep) {
         stepAccel = null;
-        $scope.stepStraighten(baseStep);
+        straightenOnce(baseStep);
         var timeout = 400;
         stepTimer = setTimeout(function tick() {
             stepAccelerate();
-            $scope.stepStraighten(baseStep);
+            straightenOnce(baseStep);
             timeout = Math.max(80, timeout - 40);
             stepTimer = setTimeout(tick, timeout);
         }, timeout);
