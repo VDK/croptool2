@@ -1086,8 +1086,17 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         $scope.stepFilter(filter, baseStep);
     };
 
+    // stepStraighten() deliberately leaves the text box alone while the field is
+    // focused, so anything that steps while it is focused has to write the angle back.
+    function syncStraightenText() {
+        if ($scope.rotation) {
+            $scope.rotation.straightenAngleText = formatStraightenAngle($scope.rotation.straightenAngle);
+        }
+    }
+
     function straightenOnce(baseStep) {
         $scope.stepStraighten(stepAccel ? baseStep * stepAccel : baseStep);
+        syncStraightenText();
     }
 
     $scope.startStraightenStep = function(baseStep) {
@@ -1122,6 +1131,12 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         stepAccel = null;
     };
 
+    // A window that loses focus mid-hold never delivers the keyup/mouseup that would
+    // stop the loop, which would otherwise run away on its own.
+    angular.element($window).bind('blur', function() {
+        $scope.stopStep();
+    });
+
     $scope.stepCropDimension = function(dimension, step) {
         if (!$scope.crop_dim || !Object.prototype.hasOwnProperty.call($scope.crop_dim, dimension)) {
             return;
@@ -1132,14 +1147,37 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
     };
 
     $scope.cropDimKeydown = function(dimension, $event) {
-        var direction = $event.key === 'ArrowUp' ? 1 : ($event.key === 'ArrowDown' ? -1 : 0);
+        var direction = keyStepDirection($event);
         if (direction === 0) {
             return;
         }
         // Prevent the native number-input stepping so only one step is applied.
         $event.preventDefault();
-        $scope.stepCropDimension(dimension, direction);
+        if (holdRepeatActive($event)) {
+            return;
+        }
+        $scope.startCropStep(dimension, direction);
     };
+
+    $scope.cropDimKeyup = function($event) {
+        if (keyStepDirection($event) !== 0) {
+            $scope.stopStep();
+        }
+    };
+
+    // Held arrow keys run the same accelerated loop as the stepper buttons: the first
+    // press steps once, then the loop grows the step and shortens the interval. The
+    // browser's own key repeat is ignored so the two cannot stack.
+    function keyStepDirection($event) {
+        if ($event.key === 'ArrowUp') {
+            return 1;
+        }
+        return $event.key === 'ArrowDown' ? -1 : 0;
+    }
+
+    function holdRepeatActive($event) {
+        return stepTimer !== null || $event.repeat === true;
+    }
 
     var STRAIGHTEN_STEP = 0.01;
 
@@ -1150,17 +1188,20 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
     };
 
     $scope.straightenKeydown = function($event) {
-        var step = $event.key === 'ArrowUp' ? STRAIGHTEN_STEP
-            : ($event.key === 'ArrowDown' ? -STRAIGHTEN_STEP : 0);
-        if (step === 0) {
+        var direction = keyStepDirection($event);
+        if (direction === 0) {
             return;
         }
         $event.preventDefault();
-        $scope.stepStraighten(step);
-        // stepStraighten leaves the text untouched while the field is focused,
-        // so update the box here to keep it in sync with the arrow keys.
-        if ($scope.rotation) {
-            $scope.rotation.straightenAngleText = formatStraightenAngle($scope.rotation.straightenAngle);
+        if (holdRepeatActive($event)) {
+            return;
+        }
+        $scope.startStraightenStep(direction * STRAIGHTEN_STEP);
+    };
+
+    $scope.straightenKeyup = function($event) {
+        if (keyStepDirection($event) !== 0) {
+            $scope.stopStep();
         }
     };
 
