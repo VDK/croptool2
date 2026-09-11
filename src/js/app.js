@@ -1041,7 +1041,10 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         updateRotationAngle();
     };
 
-    // Accelerated stepper: held buttons go from slow to fast
+    // Accelerated stepper: held buttons go from slow to fast.
+    // The repeats go through $timeout, not setTimeout: each tick has to run inside a
+    // digest or the scope changes never reach the view. With a plain timeout the number
+    // boxes and the rotation sat still for the whole hold and only jumped on release.
     var stepTimer = null, stepAccel = null;
 
     function stepOnce(dimension, baseStep) {
@@ -1062,11 +1065,11 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         stepAccel = null;
         stepOnce(dimension, baseStep);
         var timeout = 400;
-        stepTimer = setTimeout(function tick() {
+        stepTimer = $timeout(function tick() {
             stepAccelerate();
             stepOnce(dimension, baseStep);
             timeout = Math.max(80, timeout - 40);
-            stepTimer = setTimeout(tick, timeout);
+            stepTimer = $timeout(tick, timeout);
         }, timeout);
     };
 
@@ -1103,11 +1106,11 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         stepAccel = null;
         straightenOnce(baseStep);
         var timeout = 400;
-        stepTimer = setTimeout(function tick() {
+        stepTimer = $timeout(function tick() {
             stepAccelerate();
             straightenOnce(baseStep);
             timeout = Math.max(80, timeout - 40);
-            stepTimer = setTimeout(tick, timeout);
+            stepTimer = $timeout(tick, timeout);
         }, timeout);
     };
 
@@ -1115,17 +1118,17 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         stepAccel = null;
         $scope.stepFilter(filter, baseStep);
         var timeout = 400;
-        stepTimer = setTimeout(function tick() {
+        stepTimer = $timeout(function tick() {
             stepAccelerate();
             $scope.stepFilter(filter, baseStep);
             timeout = Math.max(80, timeout - 40);
-            stepTimer = setTimeout(tick, timeout);
+            stepTimer = $timeout(tick, timeout);
         }, timeout);
     };
 
     $scope.stopStep = function() {
         if (stepTimer) {
-            clearTimeout(stepTimer);
+            $timeout.cancel(stepTimer);
             stepTimer = null;
         }
         stepAccel = null;
