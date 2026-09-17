@@ -4,6 +4,7 @@ namespace CropTool;
 
 use CropTool\File\File;
 use Imagick;
+use ImagickException;
 use ImagickPixel;
 
 class Image
@@ -182,13 +183,41 @@ class Image
         // Get coords orientated in the same direction as the image:
         $coords = $this->getCropCoordinates($x, $y, $width, $height, $rotation);
 
-        $this->file->crop($this->path, $destPath, $method, $coords, $rotation, $brightness, $contrast, $saturation);
+        try {
+            $this->file->crop($this->path, $destPath, $method, $coords, $rotation, $brightness, $contrast, $saturation);
+        } catch (ImagickException $e) {
+            throw new \RuntimeException(
+                self::imagickFailureMessage($this->width, $this->height, $rotation, $e->getMessage()),
+                0,
+                $e
+            );
+        }
 
         chmod($destPath, $this->filePermission);
 
         return new Image($this->editor, $this->file, $destPath, $this->mime);
     }
 
+    /**
+     * ImageMagick reports a failed allocation on very large images with an
+     * unhelpful "Unspecified error". Turn that into something the person
+     * cropping can act on, using the dimensions we already know.
+     */
+    public static function imagickFailureMessage($width, $height, $rotation, $detail = '')
+    {
+        $dimensions = ($width && $height) ? $width . ' × ' . $height . ' px' : 'unknown dimensions';
+
+        if ($rotation) {
+            return 'Free rotation is not available for an image this large (' . $dimensions . '): it needs '
+                . 'more memory than this tool can allocate. Crop the part you need first, then rotate the '
+                . 'result in a second step.';
+        }
+
+        $detail = trim((string) $detail);
+
+        return 'This image could not be processed (' . $dimensions . ')'
+            . ($detail !== '' ? ': ' . $detail : '.');
+    }
 
     protected function genThumb($thumbPath, $maxWidth, $maxHeight)
     {
