@@ -222,6 +222,12 @@ class ApiService
     /** Files at or below this size use the simple single-request path. */
     const SINGLE_UPLOAD_LIMIT = 8388608;
 
+    /** Seconds to wait between status polls of an asynchronous upload. */
+    const UPLOAD_POLL_INTERVAL = 2;
+
+    /** Give up polling an asynchronous upload after this many seconds. */
+    const UPLOAD_POLL_TIMEOUT = 1800;
+
     /**
      * @param string $title
      * @param string $filename
@@ -335,6 +341,15 @@ class ApiService
      * page. The final step is a separate action=upload request that has no
      * chunk and only references the filekey, which publishes the file.
      *
+     * Both the chunk assembly and the publish are requested with async=1 so
+     * that MediaWiki runs them in background jobs and answers "Poll" instead
+     * of doing the (potentially minutes-long) work inside the API request.
+     * Synchronous assembly/publish of a multi-hundred-MB file can exceed the
+     * request time limit and fail at random; polling checkstatus is what makes
+     * the chunked path reliable. If the server does not support async it
+     * ignores the flag and answers "Success" directly, which this method also
+     * handles.
+     *
      * @param array $args Base upload arguments (no file/chunk yet).
      * @param string $filename
      * @param int $fileSize
@@ -371,6 +386,10 @@ class ApiService
                 $chunkArgs['filesize'] = $fileSize;
                 $chunkArgs['offset'] = $offset;
                 $chunkArgs['chunk'] = new \CURLFile($tmpFile);
+                // Run chunk assembly in a background job rather than inside the
+                // request (see the method docblock). Ignored when the server
+                // does not support async.
+                $chunkArgs['async'] = '1';
                 // MediaWiki requires the stash filekey from the first chunk on
                 // every request that has a non-zero offset.
                 if ($filekey !== null) {
@@ -397,9 +416,27 @@ class ApiService
                     continue;
                 }
 
+                if ($response->result === 'Poll') {
+                    // The final chunk was queued for assembly in a background
+                    // job. Poll checkstatus until the job reports Success (with
+                    // the assembled filekey) or a terminal failure.
+                    if ($filekey === null && isset($response->filekey)) {
+                        $filekey = $response->filekey;
+                    }
+                    $response = $this->pollAsyncUpload($args['token'], $filekey);
+                    if ($response->result !== 'Success') {
+                        return $response;
+                    }
+                    if (isset($response->filekey)) {
+                        $filekey = $response->filekey;
+                    }
+                    break;
+                }
+
                 if ($response->result === 'Success') {
-                    // All chunks are assembled in the upload stash. Remember
-                    // the assembled filekey and publish it below.
+                    // Async was not applied (server does not support it): the
+                    // chunks were assembled in this request. Remember the
+                    // assembled filekey and publish it below.
                     if (isset($response->filekey)) {
                         $filekey = $response->filekey;
                     }
@@ -416,10 +453,16 @@ class ApiService
             }
 
             // Publish: create the file page and revision from the assembled
-            // stash. This is the request whose result the caller sees.
+            // stash. This is the request whose result the caller sees. Also
+            // requested asynchronously so the (potentially slow) publish runs
+            // in a job instead of the request.
             $finalArgs = $args;
             $finalArgs['filekey'] = $filekey;
+            $finalArgs['async'] = '1';
             $response = $this->request($finalArgs, true)->upload;
+            if ($response->result === 'Poll') {
+                $response = $this->pollAsyncUpload($args['token'], $filekey);
+            }
             return $response;
         } catch (\Throwable $e) {
             if ($tmpFile !== null) {
@@ -428,6 +471,46 @@ class ApiService
             throw $e;
         } finally {
             fclose($handle);
+        }
+    }
+
+    /**
+     * Poll action=upload&checkstatus=1 for an asynchronous upload (chunk
+     * assembly or publish) until the background job reports a terminal result.
+     *
+     * The checkstatus answer mirrors a normal upload response: result is "Poll"
+     * while the job is queued or running, and "Success" (with imageinfo, and
+     * with the assembled filekey for the chunk-assembly phase) or
+     * "Failure"/"Warning" once it is done.
+     *
+     * @param string $token CSRF token (the same one used for the upload).
+     * @param string $filekey Stash key to poll.
+     * @return \stdClass Terminal upload result (never "Poll").
+     */
+    protected function pollAsyncUpload($token, $filekey)
+    {
+        $deadline = time() + self::UPLOAD_POLL_TIMEOUT;
+
+        while (true) {
+            sleep(self::UPLOAD_POLL_INTERVAL);
+
+            $response = $this->request([
+                'action' => 'upload',
+                'format' => 'json',
+                'token' => $token,
+                'filekey' => $filekey,
+                'checkstatus' => '1',
+            ])->upload;
+
+            if ($response->result !== 'Poll') {
+                return $response;
+            }
+
+            if (time() >= $deadline) {
+                throw new ApiError(
+                    'Timed out waiting for the asynchronous upload ("' . $filekey . '") to finish.'
+                );
+            }
         }
     }
 
