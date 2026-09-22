@@ -168,14 +168,6 @@ class FileController
         $crop = $original->crop($destPath, $cropMethod, $x, $y, $width, $height, $rotation, $brightness, $contrast, $saturation);
         $thumb = $crop->thumb($thumbPath);
 
-        // A TIFF whose original carried an embedded preview/thumbnail subfile
-        // keeps one in the crop (downscaled to the same resolution tier), so
-        // MediaWiki can keep rendering thumbnails from the subfile instead of
-        // decoding a still-huge main scan.
-        if ($page->file instanceof \CropTool\File\TiffFile) {
-            $page->file->embedThumbnailIntoCrop($destPath);
-        }
-
         $logger->info('[{sha1}] Cropped using {method} mode', [
             'sha1' => $page->file->getShortSha1(),
             'method' => $cropMethod,
