@@ -216,8 +216,13 @@ class ApiService
     }
 
 
-    /** MediaWiki's default maximum chunk size is 5 MiB. */
-    const UPLOAD_CHUNK_SIZE = 5242880;
+    /**
+     * Chunk size for chunked uploads. Wikimedia's PHP post_max_size /
+     * upload_max_filesize is 100 MiB, so chunks can be much larger than the
+     * 5 MiB used by older examples; larger chunks mean fewer round-trips and
+     * are more reliable. 64 MiB leaves headroom for multipart overhead.
+     */
+    const UPLOAD_CHUNK_SIZE = 67108864;
 
     /** Files at or below this size use the simple single-request path. */
     const SINGLE_UPLOAD_LIMIT = 8388608;
@@ -336,8 +341,8 @@ class ApiService
 
     /**
      * Chunked upload. MediaWiki does not accept very large files in a single
-     * POST, so send the file in 5 MiB chunks (action=upload with chunk+
-     * offset+filesize+filekey).
+     * POST, so send the file in UPLOAD_CHUNK_SIZE-byte chunks (action=upload
+     * with chunk+offset+filesize+filekey).
      *
      * Note: chunk requests only store the file in an upload stash. When the
      * last chunk is received MediaWiki assembles the stash and answers
