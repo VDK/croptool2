@@ -20,6 +20,8 @@ class ApiService
     protected $userAgent;
     protected $site;
     protected $factory;
+    /** Timestamp of the last upload-progress write (see writeUploadProgress). */
+    protected $lastUploadProgressWrite = 0;
     public $calls = 0;
 
     public function __construct(FactoryInterface $factory, LoggerInterface $logger, AuthServiceInterface $auth, Config $config, $site = 'commons.wikimedia.org')
@@ -42,9 +44,14 @@ class ApiService
      *
      * @param array $args
      * @param bool $multipart
+     * @param bool $signed
+     * @param callable|null $onProgress Called while the request is in flight with
+     *   the number of request-body bytes sent so far. curl reports a POST body
+     *   as upload (ultotal/ulnow), which is what lets the upload bar move during
+     *   a chunk instead of only between chunks.
      * @return stdClass
      */
-    public function request($args, $multipart = false, $signed = true)
+    public function request($args, $multipart = false, $signed = true, $onProgress = null)
     {
         $args['format'] = 'json';
 
@@ -67,6 +74,18 @@ class ApiService
         curl_setopt($ch, CURLOPT_USERAGENT, $this->userAgent);
         curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        if ($onProgress !== null) {
+            curl_setopt($ch, CURLOPT_NOPROGRESS, false);
+            curl_setopt(
+                $ch,
+                CURLOPT_XFERINFOFUNCTION,
+                function ($curl, $dltotal, $dlnow, $ultotal, $ulnow) use ($onProgress) {
+                    $onProgress($ulnow, $ultotal);
+                    return 0;
+                }
+            );
+        }
 
         $data = curl_exec($ch);
 
@@ -337,6 +356,14 @@ class ApiService
         if (!$progressFile) {
             return;
         }
+        $now = microtime(true);
+        $finished = $fileSize > 0 && $uploaded >= $fileSize;
+        // The curl progress callback fires constantly, and the status file is
+        // only polled a few times per second.
+        if (!$finished && ($now - $this->lastUploadProgressWrite) < 0.4) {
+            return;
+        }
+        $this->lastUploadProgressWrite = $now;
         @file_put_contents(
             $progressFile,
             (string)json_encode(['uploaded' => (int)$uploaded, 'filesize' => (int)$fileSize])
@@ -409,7 +436,17 @@ class ApiService
                     $chunkArgs['filekey'] = $filekey;
                 }
 
-                $response = $this->request($chunkArgs, true)->upload;
+                // Report progress during the chunk as well, otherwise a
+                // multi-chunk upload only moves by one chunk
+                // (UPLOAD_CHUNK_SIZE / filesize) at a time.
+                $chunkProgress = null;
+                if ($progressFile !== null) {
+                    $chunkProgress = function ($sent) use ($progressFile, $offset, $fileSize) {
+                        $this->writeUploadProgress($progressFile, min($offset + $sent, $fileSize), $fileSize);
+                    };
+                }
+
+                $response = $this->request($chunkArgs, true, true, $chunkProgress)->upload;
 
                 @unlink($tmpFile);
                 $tmpFile = null;
