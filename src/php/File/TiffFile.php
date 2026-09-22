@@ -226,7 +226,10 @@ class TiffFile extends File implements FileInterface
     static public function saveImage($im, $destPath, $srcPath)
     {
         if (strtolower(pathinfo($destPath, PATHINFO_EXTENSION)) === 'tiff') {
-            $im->setImageCompression(\Imagick::COMPRESSION_ZIP);
+            // setCompression() is wand-level; setImageCompression() is
+            // image-level and the TIFF coder ignores it, so the file would be
+            // written uncompressed (~20% larger for a 16-bit scan).
+            $im->setCompression(\Imagick::COMPRESSION_ZIP);
         }
         return $im->writeImage($destPath);
     }
