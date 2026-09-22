@@ -242,8 +242,12 @@ class ApiService
     public function upload($title, $filename, $summary, $text=null, $ignoreWarnings=false, $progressFile=null)
     {
         // Large files (e.g. TIFF crops) can take many minutes to upload; do
-        // not let max_execution_time silently kill the request half-way.
-        set_time_limit(0);
+        // not let max_execution_time silently kill the request half-way. The
+        // curl transfer itself is not counted against the limit on Unix, but a
+        // generous finite ceiling also protects against a runaway loop (the
+        // async-status polling below runs a PHP loop, not just curl). It also
+        // matters on Windows, where system-call time is counted.
+        set_time_limit(1800); // 30 minutes
 
         $token = $this->getEditToken();
 

@@ -144,9 +144,13 @@ class File implements FileInterface
 
         // Downloading a large original (e.g. a 400+ MB TIFF scan) takes longer
         // than PHP's per-request execution limit, and the conversion that
-        // follows adds more. Lift the limit for the rest of this request.
+        // follows adds more. The curl transfer itself is not counted against
+        // the limit on Unix (system calls are excluded), so this mainly buys
+        // headroom for the PHP work around it; it does matter on Windows, where
+        // system-call time is counted. Use a generous finite ceiling rather
+        // than 0 so a runaway loop cannot hang the process forever.
         if (function_exists('set_time_limit')) {
-            set_time_limit(0);
+            set_time_limit(1800); // 30 minutes
         }
 
         // Init
