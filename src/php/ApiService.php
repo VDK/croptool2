@@ -224,8 +224,12 @@ class ApiService
      */
     const UPLOAD_CHUNK_SIZE = 67108864;
 
-    /** Files at or below this size use the simple single-request path. */
-    const SINGLE_UPLOAD_LIMIT = 8388608;
+    /**
+     * Files up to this size are sent in a single request. A single POST is
+     * more reliable than a chunked upload, and Wikimedia's post_max_size
+     * (100 MiB) allows it; 75 MiB leaves headroom for the multipart overhead.
+     */
+    const SINGLE_UPLOAD_LIMIT = 78643200;
 
     /** Seconds to wait between status polls of an asynchronous upload. */
     const UPLOAD_POLL_INTERVAL = 2;
