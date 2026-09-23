@@ -11,10 +11,12 @@
 
 // Icon SVG paths keyed by local name
 window.CropToolCodexIcons = {
-    // 20x20 grid, derived from File:Flip Vertical (61567) - The Noun Project.svg
-    // (CC0, Icons8 via the Noun Project; no attribution required)
-    'flip-horizontal': 'M7.5,8.58V16.67H3.33L7.5,8.58 M9.17,1.67L1.83,16C1.33,17.08,2.17,18.33,3.33,18.33h5.83V1.67L9.17,1.67z M10.83,18.33h5.83c1.25,0,2-1.25,1.5-2.33L10.83,1.67V18.33z',
-    'flip-vertical': '<g transform="rotate(90 10 10)">M7.5,8.58V16.67H3.33L7.5,8.58 M9.17,1.67L1.83,16C1.33,17.08,2.17,18.33,3.33,18.33h5.83V1.67L9.17,1.67z M10.83,18.33h5.83c1.25,0,2-1.25,1.5-2.33L10.83,1.67V18.33z</g>',
+    // File:Flip Vertical (61567) - The Noun Project.svg (CC0, Icons8 via the Noun
+    // Project; no attribution required). The artwork is on a 24x24 grid, so it is
+    // scaled onto the 20x20 grid the other icons use. The second one is the same
+    // glyph turned a quarter turn.
+    'flip-horizontal': '<g transform="scale(0.833333)"><path d="M9,10.3V20H4L9,10.3 M11,2L2.2,19.2C1.6,20.5,2.6,22,4,22h7V2L11,2z"/><path d="M13,22h7c1.5,0,2.4-1.5,1.8-2.8L13,2V22z"/></g>',
+    'flip-vertical': '<g transform="rotate(90 10 10) scale(0.833333)"><path d="M9,10.3V20H4L9,10.3 M11,2L2.2,19.2C1.6,20.5,2.6,22,4,22h7V2L11,2z"/><path d="M13,22h7c1.5,0,2.4-1.5,1.8-2.8L13,2V22z"/></g>',
 
     'user-anonymous': '<path d="M13.5 13.5a2.5 2.5 0 11-2.29 3.5H8.79A2.499 2.499 0 014 16a2.5 2.5 0 014.79-1h2.42a2.5 2.5 0 012.29-1.5M15 7.086l3.207 3.207L17.5 12h-15l-.707-1.707L5 7.086V2h10zm-8 .828L4.914 10h10.172L13 7.914V4H7z"/>',
     'user-active': '<path d="M12 11a6 6 0 016 6v2H2v-2a6 6 0 016-6zM10 1a4 4 0 110 8 4 4 0 010-8"/>',
