@@ -625,6 +625,11 @@ label {
     direction: ltr;
 }
 
+/* Wikimedia's base text colour, instead of the #333 the buttons inherit. */
+.orientation-toolbar .ct-icon {
+    color: #202122;
+}
+
 .orientation-btn {
     min-width: 0;
     min-height: 36px;
