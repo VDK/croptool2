@@ -175,6 +175,12 @@ class FileController
         if ($rotation) {
             $dim[] = "rotated {$rotation}°";
         }
+        if ($flipHorizontal) {
+            $dim[] = 'mirrored left to right';
+        }
+        if ($flipVertical) {
+            $dim[] = 'mirrored top to bottom';
+        }
         if ($brightness != 0) {
             $dim[] = "brightness {$brightness}";
         }
