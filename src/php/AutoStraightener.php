@@ -29,7 +29,7 @@ class AutoStraightener
                 continue;
             }
 
-            $angle = round((float)$output, 1);
+            $angle = round((float)$output, 2);
             if (abs($angle) > self::MAX_ANGLE) {
                 return 0.0;
             }
