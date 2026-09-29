@@ -673,7 +673,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         if ($scope.preRotationCropmethod) {
             $scope.cropmethod = $scope.preRotationCropmethod;
         }
-        $scope.rotation = {angle: 0, rightAngle: 0, straightenAngle: 0};
+        $scope.rotation = {angle: 0, rightAngle: 0, straightenAngle: 0, straightenAngleText: '0'};
         $scope.preRotationCropmethod = null;
         $scope.filters = {brightness: 0, contrast: 0, saturation: 0};
         $scope.filterPreviewEnabled = true;
@@ -877,9 +877,37 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         return angle % 360;
     }
 
+    var MAX_STRAIGHTEN_ANGLE = 90;
+
+    function clampStraightenAngle(angle) {
+        return Math.max(-MAX_STRAIGHTEN_ANGLE, Math.min(MAX_STRAIGHTEN_ANGLE, angle));
+    }
+
     function straightenAngle() {
         var angle = parseFloat($scope.rotation && $scope.rotation.straightenAngle);
-        return isNaN(angle) ? 0 : angle;
+        return clampStraightenAngle(isNaN(angle) ? 0 : angle);
+    }
+
+    // The straighten box is a text input so that typing decimals (e.g. "4.25")
+    // works: an <input type="number"> re-parses and rewrites partial values like
+    // "4." on every keystroke, swallowing the decimal separator. The text is
+    // parsed/clamped here and only reformatted on blur.
+    $scope.straightenTextFocus = false;
+
+    function formatStraightenAngle(angle) {
+        return String(Math.round(angle * 100) / 100);
+    }
+
+    function parseStraightenText(text) {
+        if (text === null || text === undefined) {
+            return NaN;
+        }
+        text = String(text).trim().replace(',', '.');
+        if (text === '' || text === '-' || text === '.' || text === '-.') {
+            return NaN;
+        }
+        var value = Number(text);
+        return isFinite(value) ? value : NaN;
     }
 
     function updateRotationAngle() {
@@ -888,6 +916,9 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         $scope.rotation.angle = $scope.rotation.rightAngle + $scope.rotation.straightenAngle;
         if ($scope.crop_dim) {
             $scope.crop_dim.rotate = $scope.rotation.angle;
+        }
+        if (!$scope.straightenTextFocus) {
+            $scope.rotation.straightenAngleText = formatStraightenAngle($scope.rotation.straightenAngle);
         }
         applyRotationCropMethodLock();
     }
@@ -987,7 +1018,33 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         updateRotationAngle();
     };
 
-    // Accelerated stepper: held buttons go from slow to fast
+    $scope.onStraightenTextFocus = function() {
+        $scope.straightenTextFocus = true;
+    };
+
+    $scope.straightenTextChanged = function() {
+        var value = parseStraightenText($scope.rotation && $scope.rotation.straightenAngleText);
+        if (isNaN(value)) {
+            // Partial input such as "4." or "-"; keep the current angle and let
+            // the user finish typing. The value is normalized on blur.
+            return;
+        }
+        $scope.rotation.straightenAngle = clampStraightenAngle(value);
+        updateRotationAngle();
+    };
+
+    $scope.straightenTextBlur = function() {
+        $scope.straightenTextFocus = false;
+        var value = parseStraightenText($scope.rotation && $scope.rotation.straightenAngleText);
+        var angle = isNaN(value) ? straightenAngle() : clampStraightenAngle(value);
+        $scope.rotation.straightenAngle = angle;
+        updateRotationAngle();
+    };
+
+    // Accelerated stepper: held buttons go from slow to fast.
+    // The repeats go through $timeout, not setTimeout: each tick has to run inside a
+    // digest or the scope changes never reach the view. With a plain timeout the number
+    // boxes and the rotation sat still for the whole hold and only jumped on release.
     var stepTimer = null, stepAccel = null;
 
     function stepOnce(dimension, baseStep) {
@@ -1008,11 +1065,11 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         stepAccel = null;
         stepOnce(dimension, baseStep);
         var timeout = 400;
-        stepTimer = setTimeout(function tick() {
+        stepTimer = $timeout(function tick() {
             stepAccelerate();
             stepOnce(dimension, baseStep);
             timeout = Math.max(80, timeout - 40);
-            stepTimer = setTimeout(tick, timeout);
+            stepTimer = $timeout(tick, timeout);
         }, timeout);
     };
 
@@ -1032,15 +1089,28 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         $scope.stepFilter(filter, baseStep);
     };
 
+    // stepStraighten() deliberately leaves the text box alone while the field is
+    // focused, so anything that steps while it is focused has to write the angle back.
+    function syncStraightenText() {
+        if ($scope.rotation) {
+            $scope.rotation.straightenAngleText = formatStraightenAngle($scope.rotation.straightenAngle);
+        }
+    }
+
+    function straightenOnce(baseStep) {
+        $scope.stepStraighten(stepAccel ? baseStep * stepAccel : baseStep);
+        syncStraightenText();
+    }
+
     $scope.startStraightenStep = function(baseStep) {
         stepAccel = null;
-        $scope.stepStraighten(baseStep);
+        straightenOnce(baseStep);
         var timeout = 400;
-        stepTimer = setTimeout(function tick() {
+        stepTimer = $timeout(function tick() {
             stepAccelerate();
-            $scope.stepStraighten(baseStep);
+            straightenOnce(baseStep);
             timeout = Math.max(80, timeout - 40);
-            stepTimer = setTimeout(tick, timeout);
+            stepTimer = $timeout(tick, timeout);
         }, timeout);
     };
 
@@ -1048,21 +1118,27 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         stepAccel = null;
         $scope.stepFilter(filter, baseStep);
         var timeout = 400;
-        stepTimer = setTimeout(function tick() {
+        stepTimer = $timeout(function tick() {
             stepAccelerate();
             $scope.stepFilter(filter, baseStep);
             timeout = Math.max(80, timeout - 40);
-            stepTimer = setTimeout(tick, timeout);
+            stepTimer = $timeout(tick, timeout);
         }, timeout);
     };
 
     $scope.stopStep = function() {
         if (stepTimer) {
-            clearTimeout(stepTimer);
+            $timeout.cancel(stepTimer);
             stepTimer = null;
         }
         stepAccel = null;
     };
+
+    // A window that loses focus mid-hold never delivers the keyup/mouseup that would
+    // stop the loop, which would otherwise run away on its own.
+    angular.element($window).bind('blur', function() {
+        $scope.stopStep();
+    });
 
     $scope.stepCropDimension = function(dimension, step) {
         if (!$scope.crop_dim || !Object.prototype.hasOwnProperty.call($scope.crop_dim, dimension)) {
@@ -1073,10 +1149,63 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
         $scope.onCropDimChange(dimension);
     };
 
+    $scope.cropDimKeydown = function(dimension, $event) {
+        var direction = keyStepDirection($event);
+        if (direction === 0) {
+            return;
+        }
+        // Prevent the native number-input stepping so only one step is applied.
+        $event.preventDefault();
+        if (holdRepeatActive($event)) {
+            return;
+        }
+        $scope.startCropStep(dimension, direction);
+    };
+
+    $scope.cropDimKeyup = function($event) {
+        if (keyStepDirection($event) !== 0) {
+            $scope.stopStep();
+        }
+    };
+
+    // Held arrow keys run the same accelerated loop as the stepper buttons: the first
+    // press steps once, then the loop grows the step and shortens the interval. The
+    // browser's own key repeat is ignored so the two cannot stack.
+    function keyStepDirection($event) {
+        if ($event.key === 'ArrowUp') {
+            return 1;
+        }
+        return $event.key === 'ArrowDown' ? -1 : 0;
+    }
+
+    function holdRepeatActive($event) {
+        return stepTimer !== null || $event.repeat === true;
+    }
+
+    var STRAIGHTEN_STEP = 0.01;
+
     $scope.stepStraighten = function(step) {
-        var angle = Math.round((straightenAngle() + step) * 10) / 10;
-        $scope.rotation.straightenAngle = Math.max(-15, Math.min(15, angle));
+        var angle = Math.round((straightenAngle() + step) * 100) / 100;
+        $scope.rotation.straightenAngle = clampStraightenAngle(angle);
         updateRotationAngle();
+    };
+
+    $scope.straightenKeydown = function($event) {
+        var direction = keyStepDirection($event);
+        if (direction === 0) {
+            return;
+        }
+        $event.preventDefault();
+        if (holdRepeatActive($event)) {
+            return;
+        }
+        $scope.startStraightenStep(direction * STRAIGHTEN_STEP);
+    };
+
+    $scope.straightenKeyup = function($event) {
+        if (keyStepDirection($event) !== 0) {
+            $scope.stopStep();
+        }
     };
 
     $scope.resetStraighten = function() {
@@ -1599,7 +1728,7 @@ controller('AppCtrl', ['$scope', '$http', '$timeout', '$q', '$window', '$httpPar
     $scope.aspectratio_cy = LocalStorageService.get('croptool-aspectratio-y') || '9';;
     $scope.aspectratio_value = parseFloat(LocalStorageService.get('croptool-aspectratio-value')) || null;
     $scope.overwrite = 'rename';
-    $scope.rotation = {angle: 0, rightAngle: 0, straightenAngle: 0};
+    $scope.rotation = {angle: 0, rightAngle: 0, straightenAngle: 0, straightenAngleText: '0'};
     $scope.preRotationCropmethod = null;
     $scope.filters = {brightness: 0, contrast: 0, saturation: 0};
     $scope.filterPreviewEnabled = true;
