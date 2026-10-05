@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Kaganer"
+			"Kaganer",
+			"Yurina Tatiana"
 		]
 	},
 	"CropTool2": "CropTool2",
@@ -35,6 +36,8 @@
 	"cropform-method": "Метод обрезки",
 	"cropform-method-precise": "Точность",
 	"cropform-method-lossless": "Без потерь",
+	"cropform-aspect-ratio-keep": "Исходное",
+	"cropform-aspect-ratio-square": "Квадрат",
 	"previewform-overwrite": "Перезаписать",
 	"previewform-create-new": "Загрузить как новый файл",
 	"previewform-new-title": "Новое имя файла",
