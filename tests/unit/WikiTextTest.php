@@ -325,6 +325,8 @@ WIKITEXT;
 
         $this->assertStringStartsWith('{{subst:unc}}', (string) $wikitext);
         $this->assertStringNotContainsString('Coat of arms images', (string) $wikitext);
+    }
+    
     public function testItSkipsAnImageThatIsAlreadyListedAsExtracted()
     {
         $oldText = '
