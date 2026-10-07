@@ -29,14 +29,14 @@ class DjvuFile extends File implements FileInterface
         }
 
         // Extract page as tiff
-        Command::exec($this->pathToDdjvu . ' -page={page} -format=tiff {src} {dest}', [
+        Command::exec(escapeshellarg($this->pathToDdjvu) . ' -page={page} -format=tiff {src} {dest}', [
             'page' => $pageno,
             'src' => $djvuFile,
             'dest' => $tiffFile,
         ]);
 
         // Convert tiff to jpg
-        Command::exec('convert {src} {dest}', [
+        Command::exec($this->pathToConvert . ' {src} {dest}', [
             'src' => $tiffFile,
             'dest' => $jpgFile,
         ]);

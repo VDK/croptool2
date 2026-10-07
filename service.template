@@ -1,5 +1,5 @@
 backend: kubernetes
 type: buildservice
 mount: all
-mem: 2Gi
+mem: 6Gi
 cpu: 1

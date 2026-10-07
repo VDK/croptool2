@@ -289,6 +289,84 @@ WIKITEXT;
         $this->assertEquals($newText2, $wikitext);
     }
 
+    public function testItRemovesACategoryThatHasASortKey()
+    {
+        $oldText = '
+{{Information
+|description=Test
+}}
+
+[[Category:Coat of arms images|British Antarctic Territory]]
+[[Category:Keep me]]
+
+{{PD-self}}
+';
+
+        $wikitext = WikiText::make($oldText)
+            ->withoutCategories(['Coat of arms images']);
+
+        $this->assertStringNotContainsString('Coat of arms images', (string) $wikitext);
+        $this->assertStringContainsString('[[Category:Keep me]]', (string) $wikitext);
+    }
+
+    public function testItPrependsTheUncTemplate()
+    {
+        $wikitext = WikiText::make("{{PD-self}}\n")
+            ->addUncTemplate();
+
+        $this->assertStringStartsWith('{{subst:unc}}', (string) $wikitext);
+    }
+
+    public function testItPrependsTheUncTemplateWhenTheLastCategoryIsRemoved()
+    {
+        $wikitext = WikiText::make("{{PD-self}}\n[[Category:Coat of arms images|British Antarctic Territory]]\n")
+            ->withoutCategories(['Coat of arms images'])
+            ->addUncTemplate();
+
+        $this->assertStringStartsWith('{{subst:unc}}', (string) $wikitext);
+        $this->assertStringNotContainsString('Coat of arms images', (string) $wikitext);
+    }
+    
+    public function testItSkipsAnImageThatIsAlreadyListedAsExtracted()
+    {
+        $oldText = '
+{{Information
+|other_versions={{Image extracted|HoryujiYumedono0363 edit1.jpg}}
+}}
+
+{{PD-self}}
+';
+
+        // Cropping the same image again overwrites the previous crop, so the
+        // name is already in the list and must not be added a second time.
+        $wikitext = WikiText::make($oldText)
+            ->appendImageExtractedTemplate('HoryujiYumedono0363 edit1.jpg');
+
+        $this->assertEquals($oldText, $wikitext);
+
+        // Same title, written the way a wikitext editor might write it.
+        $this->assertTrue($wikitext->listsExtractedImage('File:HoryujiYumedono0363_edit1.jpg'));
+        $this->assertFalse($wikitext->listsExtractedImage('HoryujiYumedono0363 edit2.jpg'));
+    }
+
+    public function testItSkipsAnImageAlreadyListedInAnotherExtractedTemplate()
+    {
+        $oldText = '
+{{Information
+|other_versions={{Image extracted|HoryujiYumedono0363 edit1.jpg}}
+}}
+
+{{Extracted images|My new file.jpg}}
+
+{{PD-self}}
+';
+
+        $wikitext = WikiText::make($oldText)
+            ->appendImageExtractedTemplate('My new file.jpg');
+
+        $this->assertEquals($oldText, $wikitext);
+    }
+
 
     /**
      * This test also test that multibyte wikitext is handled correctly
