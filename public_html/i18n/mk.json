@@ -4,6 +4,8 @@
 			"Bjankuloski06"
 		]
 	},
+	"upload-progress-label": "Подигање",
+	"download-progress-label": "Преземање на изворната податотека",
 	"CropTool2": "Поткаструвач2",
 	"initial-loading": "Само момент...",
 	"logged-in": "Најавени сте како",

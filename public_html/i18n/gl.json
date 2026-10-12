@@ -36,6 +36,8 @@
 	"cropform-orientation": "Orientación",
 	"cropform-rotate-left": "Xirar á esquerda",
 	"cropform-rotate-right": "Xirar á dereita",
+	"cropform-flip-horizontal": "Envorcar de esquerda a dereita",
+	"cropform-flip-vertical": "Envorcar de arriba a abaixo",
 	"cropform-straighten": "Endereitar",
 	"cropform-straighten-auto": "Automático",
 	"cropform-straighten-increase": "Aumentar o ángulo de endereitamento",

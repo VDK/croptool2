@@ -36,6 +36,8 @@
 	"cropform-orientation": "方向",
 	"cropform-rotate-left": "向左旋转",
 	"cropform-rotate-right": "向右旋转",
+	"cropform-flip-horizontal": "左右镜像",
+	"cropform-flip-vertical": "上下镜像",
 	"cropform-straighten": "拉直",
 	"cropform-straighten-auto": "自动",
 	"cropform-straighten-increase": "增大拉直角度",
