@@ -36,6 +36,8 @@
 	"cropform-orientation": "Orientament",
 	"cropform-rotate-left": "Viré a snistra",
 	"cropform-rotate-right": "Viré a drita",
+	"cropform-flip-horizontal": "Specc da snistra a drita",
+	"cropform-flip-vertical": "Specc d'an àut an bass",
 	"cropform-straighten": "Ardrissé",
 	"cropform-straighten-auto": "Automàtich",
 	"cropform-straighten-increase": "Aumenté l'àngol d'ardrissament",
