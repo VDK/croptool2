@@ -1,9 +1,12 @@
 {
 	"@metadata": {
 		"authors": [
+			"KormiSK",
 			"Wizzard"
 		]
 	},
+	"upload-progress-label": "Nahráva sa",
+	"download-progress-label": "Stiahnuť pôvodný súbor",
 	"CropTool2": "CropTool2",
 	"initial-loading": "Moment, prosím…",
 	"logged-in": "Prihlásený ako",
@@ -34,6 +37,8 @@
 	"cropform-orientation": "Orientácia",
 	"cropform-rotate-left": "Otočiť doľava",
 	"cropform-rotate-right": "Otočiť doprava",
+	"cropform-flip-horizontal": "Zrkadliť zľava doprava",
+	"cropform-flip-vertical": "Zrkadliť zhora nadol",
 	"cropform-straighten": "Vyrovnať",
 	"cropform-straighten-auto": "Automaticky",
 	"cropform-straighten-increase": "Zvýšiť uhol vyrovnania",
