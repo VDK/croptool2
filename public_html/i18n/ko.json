@@ -5,6 +5,8 @@
 			"YeBoy371"
 		]
 	},
+	"upload-progress-label": "올리는 중",
+	"download-progress-label": "원본 파일 다운로드 중",
 	"CropTool2": "CropTool2",
 	"initial-loading": "잠시만 기다려주세요...",
 	"logged-in": "다음으로 로그인됨",
@@ -15,6 +17,7 @@
 	"loginform-header": "승인 필요",
 	"loginform-blurb": "CropTool2는 위키미디어 사이트에서 이미지(JPG, PNG, GIF, SVG, WebP, PDF, TIFF 또는 DjVu 파일)를 자르는 도구입니다. <a href=\"{{url}}\" target=\"_blank\" rel=\"noopener\">자세히 알아보기</a>.",
 	"loginform-help": "CropTool2를 사용하려면 위키미디어 계정에 연결해야 합니다. 안전한 과정이며 비밀번호는 CropTool2에서 제공되지 않습니다.",
+	"INVALID_COOKIE": "세션이 만료되었습니다. 다시 인증해 주세요.",
 	"loginform-submit-button": "연결",
 	"titleform-header": "무엇을 자를까요?",
 	"titleform-help": "자르려는 그림의 URL 또는 파일 이름을 입력하세요.",
@@ -29,6 +32,7 @@
 	"thumb-dimensions": "섬네일: {{width}}×{{height}} px.",
 	"crop-dimensions": "자르기: {{width}}×{{height}} px.",
 	"cropped-dimensions": "자른 그림 크기: {{width}}×{{height}} px.",
+	"cropform-border-locator": "테두리 찾기",
 	"cropform-orientation": "방향",
 	"cropform-rotate-left": "왼쪽으로 회전",
 	"cropform-rotate-right": "오른쪽으로 회전",
